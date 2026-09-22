@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+{% block title %}Product Classification & Innovation Analyzer — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .wizard-container {
+    max-width: 1080px;
+    margin: 40px auto 80px;
+    padding: 0 24px;
+  }
+
+  .wizard-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .wizard-header h1 {
+    font-size: 32px;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .wizard-header p {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 650px;
+    margin: 0 auto;
+  }
+
+  /* Wizard Progress Steps */
+  .step-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .step-bar::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 1;
+    transform: translateY(-50%);
+  }
+
+  .step-node {
+    position: relative;
+    z-index: 2;
+    background: #ffffff;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+  }
+
+  .step-node.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 0 0 4px var(--primary-light);
+  }
+
+  .step-node.done {
+    border-color: var(--accent-green);
+    background: var(--accent-green);
+    color: #ffffff;
+  }
+
+  /* Wizard Card */
+  .wizard-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .step-content {
+    display: none;
+  }
+
+  .step-content.active {
+    display: block;
+    animation: fadeIn 0.25s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+
+  .step-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-main);
+  }
+
+  .form-group input, .form-group textarea, .form-group select {
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14.5px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--primary);
+  }
+
+  .wizard-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* Disclaimers & Results */
+  .disclaimer-banner {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    color: #b45309;
+    font-size: 13.5px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .result-regime-card {
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .result-regime-card h3 {
+    color: var(--primary);
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+  <div class="wizard-header">
+    <h1>Product Classification & Innovation Wizard</h1>
+    <p>Guided multi-step assessment determining whether your product falls under Ayurvedic medicine, phytopharmaceutical, food, or cosmetic regulatory regimes.</p>
+  </div>
+
+  <!-- Step Progress Bar -->
+  <div class="step-bar">
+    <div class="step-node active" id="node-1">1</div>
+    <div class="step-node" id="node-2">2</div>
+    <div class="step-node" id="node-3">3</div>
+    <div class="step-node" id="node-4">4</div>
+    <div class="step-node" id="node-5">5</div>
+    <div class="step-node" id="node-6">6</div>
+  </div>
+
+  <div class="wizard-card">
+    <form id="wizard-form" onsubmit="return false;">
+      <!-- Step 1: Product Name -->
+      <div class="step-content active" id="step-1">
+        <h2 class="step-title">Step 1: Product Identification</h2>
+        <p class="step-desc">Provide the name or working title of your Ayurvedic or herbal innovation.</p>
+
+        <div class="form-group">
+          <label>Product / Formulation Name *</label>
+          <input type="text" id="wiz-name" placeholder="e.g. Polyherbal Anti-Diabetic Capsule" required>
+        </div>
+
+        <div class="form-group">
+          <label>Short Description (Optional)</label>
+          <textarea id="wiz-desc" rows="3" placeholder="Brief background of the formulation or invention..."></textarea>
+        </div>
+      </div>
+
+      <!-- Step 2: Ingredients -->
+      <div class="step-content" id="step-2">
+        <h2 class="step-title">Step 2: Ingredients & Botanical Resources</h2>
+        <p class="step-desc">List key plant, mineral, or biological ingredients used in the formulation.</p>
+
+        <div class="form-group">
+          <label>Botanical / Herbal Ingredients *</label>
+          <textarea id="wiz-ingredients" rows="4" placeholder="e.g. Azadirachta indica (Neem), Curcuma longa (Haridra), Syzygium cumini (Jambubeej)..." required></textarea>
+        </div>
+      </div>
+
+      <!-- Step 3: Preparation & Form -->
+      <div class="step-content" id="step-3">
+        <h2 class="step-title">Step 3: Preparation Process & Administration Form</h2>
+        <p class="step-desc">Specify how the product is prepared and administered.</p>
+
+        <div class="form-group">
+          <label>Delivery / Administration Form</label>
+          <select id="wiz-delivery">
+            <option value="Oral Tablet/Capsule">Oral Tablet / Capsule</option>
+            <option value="Liquid Decoction/Syrup">Liquid Decoction / Syrup / Asava / Arishta</option>
+            <option value="Topical Ointment/Oil">Topical Ointment / Taila / Cream</option>
+            <option value="Powder/Churna">Powder / Churna</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Preparation Process Details</label>
+          <textarea id="wiz-process" rows="3" placeholder="e.g. Classical Bhavana process, hydro-alcoholic extract, standardized fraction..."></textarea>
+        </div>
+      </div>
+
+      <!-- Step 4: Intended Use & Claims -->
+      <div class="step-content" id="step-4">
+        <h2 class="step-title">Step 4: Intended Use & Therapeutic Claims</h2>
+        <p class="step-desc">Detail the intended health purpose and therapeutic or cosmetic claims made.</p>
+
+        <div class="form-group">
+          <label>Intended Purpose & Claims *</label>
+          <textarea id="wiz-claims" rows="4" placeholder="e.g. Blood sugar management, joint pain relief, skin hydration..." required></textarea>
+        </div>
+      </div>
+
+      <!-- Step 5: Classical Basis -->
+      <div class="step-content" id="step-5">
+        <h2 class="step-title">Step 5: Classical Ayurvedic Text Basis</h2>
+        <p class="step-desc">Indicate if the formulation is derived directly from an authoritative classical samhita.</p>
+
+        <div class="form-group">
+          <label>Based on Classical Ayurvedic Text?</label>
+          <select id="wiz-classical">
+            <option value="Yes">Yes — Formulated directly from Charaka / Sushruta / Ayurvedic Pharmacopoeia</option>
+            <option value="No">No — Proprietary / Novel formulation combination</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Step 6: Target Jurisdiction & Run -->
+      <div class="step-content" id="step-6">
+        <h2 class="step-title">Step 6: Target Market Jurisdiction</h2>
+        <p class="step-desc">Select the target jurisdiction for regulatory compliance and IP assessment.</p>
+
+        <div class="form-group">
+          <label>Target Jurisdiction</label>
+          <select id="wiz-country">
+            <option value="India">India</option>
+            <option value="International">International</option>
+            <option value="USA">USA</option>
+            <option value="European Union">European Union</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Wizard Navigation Buttons -->
+      <div class="wizard-actions">
+        <button type="button" class="btn btn-secondary" id="prev-btn" onclick="prevStep()" style="display:none;">Back</button>
+        <div style="margin-left:auto; display:flex; gap:10px;">
+          <button type="button" class="btn btn-primary" id="next-btn" onclick="nextStep()">Next Step &rarr;</button>
+          <button type="button" class="btn btn-green" id="submit-wiz-btn" onclick="runClassification()" style="display:none;">Analyze Classification & IP</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Results View -->
+  <div id="results-container" style="display:none; margin-top:40px;">
+    <div class="disclaimer-banner">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      <div>
+        <strong>Legal & Regulatory Disclaimer:</strong> Classification output indicates <em>potential regulatory regime assignment</em> ("may fall under", "requires verification"). It does not constitute legally binding CDSCO/AYUSH determination.
+      </div>
+    </div>
+
+    <div id="results-card-body"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let currentStep = 1;
+
+  function updateStepUI() {
+    for (let i = 1; i <= 6; i++) {
+      const node = document.getElementById(`node-${i}`);
+      const step = document.getElementById(`step-${i}`);
+      if (node) {
+        node.classList.toggle('active', i === currentStep);
+        node.classList.toggle('done', i < currentStep);
+      }
+      if (step) {
+        step.classList.toggle('active', i === currentStep);
+      }
+    }
+
+    document.getElementById('prev-btn').style.display = currentStep > 1 ? 'inline-flex' : 'none';
+    document.getElementById('next-btn').style.display = currentStep < 6 ? 'inline-flex' : 'none';
+    document.getElementById('submit-wiz-btn').style.display = currentStep === 6 ? 'inline-flex' : 'none';
+  }
+
+  function nextStep() {
+    if (currentStep < 6) {
+      currentStep++;
+      updateStepUI();
+    }
+  }
+
+  function prevStep() {
+    if (currentStep > 1) {
+      currentStep--;
+      updateStepUI();
+    }
+  }
+
+  async function runClassification() {
+    const btn = document.getElementById('submit-wiz-btn');
+    btn.disabled = true;
+    btn.textContent = 'Classifying...';
+
+    const resultsContainer = document.getElementById('results-container');
+    const resultsBody = document.getElementById('results-card-body');
+    resultsContainer.style.display = 'block';
+    resultsBody.innerHTML = '<div class="wizard-card" style="text-align:center;"><em>Running product classification engine & IP analysis...</em></div>';
+
+    try {
+      const pName = document.getElementById('wiz-name').value;
+      const pIng = document.getElementById('wiz-ingredients').value;
+      const pClaims = document.getElementById('wiz-claims').value;
+      const pForm = document.getElementById('wiz-delivery').value;
+      const pCountry = document.getElementById('wiz-country').value;
+
+      const res = await apiFetch('/api/regulatory/classify', {
+        method: 'POST',
+        body: JSON.stringify({
+          product_name: pName,
+          ingredients: pIng,
+          intended_use: pClaims,
+          claims: pClaims,
+          delivery_form: pForm,
+          country: pCountry
+        })
+      });
+
+      if (!res) {
+        resultsBody.innerHTML = '<div class="wizard-card" style="color:#dc2626;">Classification failed.</div>';
+        return;
+      }
+
+      resultsBody.innerHTML = `
+        <div class="result-regime-card">
+          <h3>Potential Regulatory Regime: ${escapeHtml(res.predicted_regime || 'Proprietary Ayurvedic Medicine')}</h3>
+          <p style="font-size:15px; color:var(--text-main); margin-bottom:12px;">${escapeHtml(res.rationale || 'Potential classification based on ingredients and claims.')}</p>
+          <div style="font-size:13.5px; color:var(--text-muted);">
+            <strong>Primary Authority:</strong> ${escapeHtml(res.primary_authority || 'State AYUSH Licensing Authority / CDSCO')}
+          </div>
+        </div>
+
+        <div class="wizard-card">
+          <h4 style="font-size:18px; margin-bottom:12px;">Recommended Compliance Steps</h4>
+          <ul style="padding-left:20px; line-height:1.7; font-size:14.5px;">
+            ${(res.compliance_checklist || ['Verify ingredient safety under Schedule E(1)', 'Obtain manufacturing license under Rule 154/158B', 'Ensure labeling compliance under Drugs & Cosmetics Rules']).map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    } catch(e) {
+      resultsBody.innerHTML = '<div class="wizard-card" style="color:#dc2626;">Network error occurred during analysis.</div>';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Analyze Classification & IP';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+{% endblock %}

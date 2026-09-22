@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}Regulatory Updates & Amendment Timelines — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .reg-page-container {
+    max-width: 1200px;
+    margin: 40px auto 80px;
+    padding: 0 24px;
+  }
+
+  .reg-hero {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+
+  .reg-hero h1 {
+    font-size: 30px;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .reg-hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 780px;
+  }
+
+  .timeline-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    position: relative;
+    transition: transform 0.15s ease;
+  }
+
+  .timeline-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-border);
+  }
+
+  .timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+
+  .timeline-header h3 {
+    font-size: 18px;
+    color: var(--text-main);
+  }
+
+  .badge-status {
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .badge-status.current { background: var(--accent-green-light); color: var(--accent-green); border: 1px solid var(--accent-green-border); }
+  .badge-status.historical { background: var(--bg-subtle); color: var(--text-muted); border: 1px solid var(--border-color); }
+  .badge-status.draft { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+
+  .diff-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-top: 16px;
+    font-size: 13.5px;
+  }
+
+  .diff-old {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    color: #991b1b;
+  }
+
+  .diff-new {
+    background: var(--accent-green-light);
+    border: 1px solid var(--accent-green-border);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    color: var(--accent-green);
+  }
+
+  @media (max-width: 768px) {
+    .diff-box {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reg-page-container">
+  <div class="reg-hero">
+    <h1>Regulatory Updates & Amendment Timelines</h1>
+    <p>Track historical and active amendments across AYUSH gazette notifications, Drugs & Cosmetics Rules, FSSAI regulations, and Patent Rules.</p>
+  </div>
+
+  <div id="timelines-feed">
+    <div class="timeline-card" style="text-align:center;">
+      <em>Loading regulatory amendments & timelines...</em>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  async function fetchTimelinesFeed() {
+    const feed = document.getElementById('timelines-feed');
+    try {
+      const res = await apiFetch('/api/regulations');
+      const updates = res.updates || [];
+
+      if (!updates || updates.length === 0) {
+        feed.innerHTML = '<div class="timeline-card">No regulation records currently available.</div>';
+        return;
+      }
+
+      feed.innerHTML = updates.map(u => `
+        <div class="timeline-card">
+          <div class="timeline-header">
+            <h3>${escapeHtml(u.title || u.regulation_name || 'Regulatory Notification')}</h3>
+            <span class="badge-status ${u.is_current ? 'current' : 'historical'}">
+              ${u.is_current ? 'Current' : 'Historical'}
+            </span>
+          </div>
+
+          <p style="font-size:14.5px; color:var(--text-main); margin-bottom:12px;">
+            ${escapeHtml(u.description || u.summary || 'Official statutory notification record.')}
+          </p>
+
+          <div style="font-size:13px; color:var(--text-muted); display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+            <span><strong>Authority:</strong> ${escapeHtml(u.authority || 'AYUSH / CDSCO')}</span>
+            <span><strong>Effective Date:</strong> ${escapeHtml(u.effective_date || '2026')}</span>
+            <span><strong>Jurisdiction:</strong> ${escapeHtml(u.jurisdiction || 'India')}</span>
+            <button class="btn btn-outline" style="padding:4px 10px; font-size:12px; margin-left:auto;" onclick="loadDiff('${u.id}')">
+              Compare Provision Diff
+            </button>
+          </div>
+
+          <div id="diff-container-${u.id}" style="display:none;"></div>
+        </div>
+      `).join('');
+
+    } catch(e) {
+      feed.innerHTML = '<div class="timeline-card" style="color:#dc2626;">Failed to load regulatory updates.</div>';
+    }
+  }
+
+  async function loadDiff(regId) {
+    const box = document.getElementById(`diff-container-${regId}`);
+    if (!box) return;
+    if (box.style.display === 'block') {
+      box.style.display = 'none';
+      return;
+    }
+
+    box.style.display = 'block';
+    box.innerHTML = '<div style="padding:12px 0; font-size:13px;"><em>Loading side-by-side provision diff...</em></div>';
+
+    try {
+      const res = await apiFetch(`/api/regulations/diff/${regId}`);
+      if (!res.success || !res.diff) {
+        box.innerHTML = '<div style="padding:12px 0; font-size:13px; color:var(--text-muted);">No side-by-side provision diff recorded for this notification.</div>';
+        return;
+      }
+
+      const d = res.diff;
+      box.innerHTML = `
+        <div class="diff-box">
+          <div class="diff-old">
+            <strong>Previous Provision (${escapeHtml(d.previous_version || 'Historical')}):</strong>
+            <p style="margin-top:6px; font-size:13px;">${escapeHtml(d.old_text || 'No previous text.')}</p>
+          </div>
+          <div class="diff-new">
+            <strong>Amended Provision (${escapeHtml(d.new_version || 'Enacted')}):</strong>
+            <p style="margin-top:6px; font-size:13px;">${escapeHtml(d.new_text || 'Active text.')}</p>
+          </div>
+        </div>
+      `;
+    } catch(e) {
+      box.innerHTML = '<div style="padding:12px 0; font-size:13px; color:#dc2626;">Diff loading failed.</div>';
+    }
+  }
+
+  fetchTimelinesFeed();
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+{% endblock %}

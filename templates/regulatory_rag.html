@@ -1,0 +1,712 @@
+{% extends "base.html" %}
+{% block title %}Regulatory Guidance Engine — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .reg-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  .reg-hero {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+
+  .reg-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+    border-radius: var(--radius-pill);
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 12.5px;
+    margin-bottom: 12px;
+  }
+
+  .reg-hero h1 {
+    font-size: 30px;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .reg-hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 800px;
+  }
+
+  .reg-stats-strip {
+    display: flex;
+    gap: 24px;
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-color);
+    font-size: 13px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+
+  .reg-stats-strip strong {
+    color: var(--primary);
+    font-family: var(--font-mono);
+  }
+
+  /* Navigation Tabs */
+  .reg-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+
+  .reg-tab-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .reg-tab-btn:hover {
+    color: var(--primary);
+  }
+
+  .reg-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+
+  .reg-tab-panel {
+    display: none;
+  }
+
+  .reg-tab-panel.active {
+    display: block;
+  }
+
+  /* Query Card */
+  .reg-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .form-group select, .form-group input {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13.5px;
+    outline: none;
+  }
+
+  .form-group select:focus, .form-group input:focus {
+    border-color: var(--primary);
+  }
+
+  .query-textarea {
+    width: 100%;
+    height: 90px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    outline: none;
+    margin-bottom: 16px;
+  }
+
+  .query-textarea:focus {
+    border-color: var(--primary);
+  }
+
+  /* Response Card */
+  .response-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-top: 24px;
+  }
+
+  .resp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
+  }
+
+  .evidence-badge {
+    padding: 4px 10px;
+    background: var(--accent-green-light);
+    border: 1px solid var(--accent-green-border);
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-green);
+  }
+
+  .claim-trace-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+
+  .claim-trace-table th, .claim-trace-table td {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+  }
+
+  .claim-trace-table th {
+    background: var(--bg-subtle);
+    font-weight: 600;
+  }
+
+  @media (max-width: 1100px) {
+    .form-row {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 580px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Voice Bot Button & Animations */
+  .voice-bot-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .voice-bot-btn.listening {
+    background: #fee2e2 !important;
+    border-color: #ef4444 !important;
+    color: #b91c1c !important;
+    animation: pulse-ring 1.4s infinite;
+  }
+
+  .voice-bot-btn.speaking {
+    background: #e0f2fe !important;
+    border-color: #0284c7 !important;
+    color: #0369a1 !important;
+    animation: pulse-speak 1.4s infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+
+  @keyframes pulse-speak {
+    0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reg-container">
+  <!-- Hero Section -->
+  <div class="reg-hero">
+    <div class="reg-hero-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+      Regulatory Statutory Subsystem
+    </div>
+    <h1>Regulatory Guidance RAG Engine</h1>
+    <p>Access evidence-backed statutory answers covering AYUSH Schedule T, Drugs & Cosmetics Rules, FSSAI Ayurveda Aahara regulations, and CDSCO gazettes.</p>
+
+    <div class="reg-stats-strip" id="reg-status-strip">
+      <div>Vector Store: <strong id="stat-vector-size">Loading...</strong> docs</div>
+      <div>BM25 Index: <strong id="stat-bm25-size">Loading...</strong> indexed</div>
+      <div>Sources Registered: <strong id="stat-sources-count">Loading...</strong> official</div>
+      <div>Timelines Tracked: <strong id="stat-timelines-count">Loading...</strong> gazettes</div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="reg-tabs">
+    <button class="reg-tab-btn active" onclick="switchRegTab('query')">⚖ Statutory Query Engine</button>
+    <button class="reg-tab-btn" onclick="switchRegTab('unified')">🔀 Unified Multi-Router</button>
+    <button class="reg-tab-btn" onclick="switchRegTab('sources')">📜 Registered Authorities</button>
+    <button class="reg-tab-btn" onclick="switchRegTab('timelines')">⏱ Amendment Timelines</button>
+  </div>
+
+  <!-- Tab 1: Statutory Query Engine -->
+  <div class="reg-tab-panel active" id="panel-query">
+    <div class="reg-card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Target Jurisdiction</label>
+          <select id="reg-country">
+            <option value="India">India</option>
+            <option value="International">International</option>
+            <option value="USA">USA</option>
+            <option value="European Union">European Union</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Regulatory Domain</label>
+          <select id="reg-domain">
+            <option value="Auto Detect">Auto Detect</option>
+            <option value="Ayurveda">Ayurveda / AYUSH</option>
+            <option value="Phytopharmaceutical">Phytopharmaceutical</option>
+            <option value="Nutraceutical">Nutraceutical / Ayurveda Aahara</option>
+            <option value="Cosmetic">Cosmetic</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Output Language</label>
+          <select id="reg-language">
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Odia">Odia</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Query Mode</label>
+          <select id="reg-mode">
+            <option value="quick">Quick Search</option>
+            <option value="deep">Deep Statutory Analysis</option>
+          </select>
+        </div>
+      </div>
+
+      <textarea class="query-textarea" id="reg-query-input" placeholder="e.g., What are the manufacturing license requirements for proprietary Ayurvedic syrup under Rule 158B?"></textarea>
+
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="reg-submit-btn" onclick="executeRegulatoryQuery()">Execute Statutory Query</button>
+        <button class="btn btn-secondary voice-bot-btn" id="reg-voice-btn" type="button" onclick="toggleRegVoiceBot()" title="Voice Bot (Speech-to-Text & Spoken Answer)">
+          <span class="mic-icon" id="reg-voice-icon">🎙️</span>
+          <span id="reg-voice-text">Voice Bot</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Output Container -->
+    <div id="reg-query-output" style="display:none;"></div>
+  </div>
+
+  <!-- Tab 2: Unified Multi-Router -->
+  <div class="reg-tab-panel" id="panel-unified">
+    <div class="reg-card">
+      <h3>Unified Multi-Domain Query Router</h3>
+      <p style="margin-bottom:16px;">Routes complex queries across IP Patents, Traditional Knowledge, and Regulatory engines automatically.</p>
+
+      <textarea class="query-textarea" id="unified-query-input" placeholder="e.g., Can my polyherbal formulation be patented and what licensing is required under AYUSH Schedule T?"></textarea>
+      <button class="btn btn-primary" onclick="executeUnifiedQuery()">Submit Unified Query</button>
+    </div>
+    <div id="unified-query-output" style="display:none;"></div>
+  </div>
+
+  <!-- Tab 3: Registered Authorities -->
+  <div class="reg-tab-panel" id="panel-sources">
+    <div class="reg-card">
+      <h3>Registered Regulatory Sources Directory</h3>
+      <div id="reg-sources-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; margin-top:16px;">
+        Loading sources...
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: Amendment Timelines -->
+  <div class="reg-tab-panel" id="panel-timelines">
+    <div class="reg-card">
+      <h3>Regulatory Amendment Timelines & Provision Diffs</h3>
+      <div id="reg-timelines-list" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
+        Loading regulatory timelines...
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function switchRegTab(tab) {
+    document.querySelectorAll('.reg-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.reg-tab-panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(`panel-${tab}`).classList.add('active');
+  }
+
+  async function loadStatus() {
+    try {
+      const res = await apiFetch('/api/regulatory/status');
+      if (res.success) {
+        document.getElementById('stat-vector-size').textContent = res.vector_index_size || 0;
+        document.getElementById('stat-bm25-size').textContent = res.bm25_index_size || 0;
+        document.getElementById('stat-sources-count').textContent = res.total_sources_registered || 0;
+        document.getElementById('stat-timelines-count').textContent = res.timelines_tracked || 0;
+      }
+    } catch(e) {}
+  }
+
+  async function executeRegulatoryQuery() {
+    const q = document.getElementById('reg-query-input').value.trim();
+    if (!q) return;
+
+    const out = document.getElementById('reg-query-output');
+    out.style.display = 'block';
+    out.innerHTML = '<div class="response-card"><em>Executing statutory query & verifying source citations...</em></div>';
+
+    try {
+      const res = await apiFetch('/api/regulatory/query', {
+        method: 'POST',
+        body: JSON.stringify({
+          query: q,
+          country: document.getElementById('reg-country').value,
+          domain: document.getElementById('reg-domain').value,
+          language: document.getElementById('reg-language').value,
+          mode: document.getElementById('reg-mode').value
+        })
+      });
+
+      if (!res.success) {
+        out.innerHTML = `<div class="response-card" style="color:#dc2626;">Error: ${res.error || 'Query failed.'}</div>`;
+        return;
+      }
+
+      let evidenceHtml = (res.evidence || []).map(e => `
+        <div style="background:var(--bg-subtle); padding:10px; border-radius:6px; margin-bottom:8px; font-size:13px;">
+          <strong>${escapeHtml(e.source_name)}</strong> (${escapeHtml(e.section || 'General')})<br/>
+          <span style="color:var(--text-muted);">${escapeHtml(e.text_snippet || '')}</span>
+        </div>
+      `).join('');
+
+      out.innerHTML = `
+        <div class="response-card">
+          <div class="resp-header">
+            <div>
+              <strong style="font-size:16px;">Statutory Guidance Output</strong>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button class="btn btn-secondary voice-speak-btn" style="padding:4px 10px; font-size:12px;" onclick="speakSpecificRegAnswer(this)">
+                🔊 Read Aloud
+              </button>
+              <span class="evidence-badge">Confidence: ${escapeHtml(res.confidence_level || 'Strong')}</span>
+            </div>
+          </div>
+
+          <div class="reg-answer-body" style="font-size:15px; line-height:1.6; white-space:pre-wrap; margin-bottom:20px;">${escapeHtml(res.answer)}</div>
+
+          ${evidenceHtml ? `<div><strong>Evidentiary Statutory Snippets:</strong><div style="margin-top:10px;">${evidenceHtml}</div></div>` : ''}
+        </div>
+      `;
+
+      // Automatically speak answer if query was voice-initiated
+      if (regVoiceQueryActive && res.answer) {
+        speakRegText(res.answer);
+        regVoiceQueryActive = false;
+      }
+    } catch(e) {
+      out.innerHTML = `<div class="response-card" style="color:#dc2626;">Network error.</div>`;
+    }
+  }
+
+  async function executeUnifiedQuery() {
+    const q = document.getElementById('unified-query-input').value.trim();
+    if (!q) return;
+    const out = document.getElementById('unified-query-output');
+    out.style.display = 'block';
+    out.innerHTML = '<div class="response-card"><em>Executing multi-domain routing...</em></div>';
+
+    try {
+      const res = await apiFetch('/api/unified/query', {
+        method: 'POST',
+        body: JSON.stringify({ query: q })
+      });
+      out.innerHTML = `
+        <div class="response-card">
+          <h4>Unified Router Response</h4>
+          <pre style="background:var(--bg-subtle); padding:12px; border-radius:6px; font-size:13px; overflow:auto;">${escapeHtml(JSON.stringify(res, null, 2))}</pre>
+        </div>
+      `;
+    } catch(e) {
+      out.innerHTML = `<div class="response-card" style="color:#dc2626;">Unified query failed.</div>`;
+    }
+  }
+
+  async function loadSources() {
+    try {
+      const res = await apiFetch('/api/regulatory/sources');
+      if (res.success) {
+        const grid = document.getElementById('reg-sources-grid');
+        grid.innerHTML = res.sources.map(s => `
+          <div class="source-card-mini" style="background:#fff; border:1px solid var(--border-color); border-radius:8px; padding:14px;">
+            <strong style="font-size:14px;">${escapeHtml(s.name || s.source_name)}</strong>
+            <div style="font-size:12px; color:var(--text-muted); margin:4px 0;">Authority: ${escapeHtml(s.authority || 'Government')}</div>
+            <div style="font-size:12px; color:var(--text-muted);">Jurisdiction: ${escapeHtml(s.country || s.jurisdiction || 'India')}</div>
+          </div>
+        `).join('');
+      }
+    } catch(e) {}
+  }
+
+  async function loadTimelines() {
+    try {
+      const res = await apiFetch('/api/regulatory/timelines');
+      if (res.success) {
+        const list = document.getElementById('reg-timelines-list');
+        list.innerHTML = res.timelines.map(t => `
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:8px; padding:14px;">
+            <strong>${escapeHtml(t.title || t.regulation_name)}</strong>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Effective Date: ${escapeHtml(t.effective_date || 'N/A')} | Status: ${escapeHtml(t.status || 'Enacted')}</div>
+          </div>
+        `).join('');
+      }
+    } catch(e) {}
+  }
+
+  loadStatus();
+  loadSources();
+  loadTimelines();
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ── Voice Bot (Web STT & Web TTS) for Regulatory RAG ──────────────────
+  let regRecognition = null;
+  let isRegListening = false;
+  let isRegSpeaking = false;
+  let regVoiceQueryActive = false;
+
+  function initRegSpeech() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return null;
+    const rec = new SpeechRecognition();
+    rec.continuous = false;
+    rec.interimResults = true;
+    return rec;
+  }
+
+  function getRegTargetSpeechLang() {
+    const lang = document.getElementById('reg-language')?.value || 'English';
+    if (lang === 'Hindi') return 'hi-IN';
+    if (lang === 'Odia') return 'or-IN';
+    return 'en-IN';
+  }
+
+  function cleanRegTextForSpeech(text) {
+    if (!text) return '';
+    return text
+      .replace(/\[Source\s*\d+\]/gi, '')
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/[|—–-]/g, ' ')
+      .trim();
+  }
+
+  function speakRegText(text, onEndCallback) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    const clean = cleanRegTextForSpeech(text);
+    if (!clean) return;
+
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = getRegTargetSpeechLang();
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const targetPrefix = utterance.lang.split('-')[0];
+    const match = voices.find(v => v.lang.startsWith(targetPrefix) || v.lang.replace('_', '-').startsWith(targetPrefix));
+    if (match) utterance.voice = match;
+
+    isRegSpeaking = true;
+    updateRegVoiceUI('speaking');
+
+    utterance.onend = () => {
+      isRegSpeaking = false;
+      updateRegVoiceUI('idle');
+      if (onEndCallback) onEndCallback();
+    };
+
+    utterance.onerror = () => {
+      isRegSpeaking = false;
+      updateRegVoiceUI('idle');
+      if (onEndCallback) onEndCallback();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function stopRegSpeech() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    isRegSpeaking = false;
+    updateRegVoiceUI('idle');
+  }
+
+  function updateRegVoiceUI(state) {
+    const btn = document.getElementById('reg-voice-btn');
+    const icon = document.getElementById('reg-voice-icon');
+    const label = document.getElementById('reg-voice-text');
+    if (!btn) return;
+
+    btn.classList.remove('listening', 'speaking');
+
+    if (state === 'listening') {
+      btn.classList.add('listening');
+      if (icon) icon.textContent = '🔴';
+      if (label) label.textContent = 'Listening...';
+    } else if (state === 'speaking') {
+      btn.classList.add('speaking');
+      if (icon) icon.textContent = '⏹️';
+      if (label) label.textContent = 'Stop Speaking';
+    } else {
+      if (icon) icon.textContent = '🎙️';
+      if (label) label.textContent = 'Voice Bot';
+    }
+  }
+
+  function toggleRegVoiceBot() {
+    if (isRegSpeaking) {
+      stopRegSpeech();
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Web Speech Recognition is not supported by your browser. Please try Google Chrome or Microsoft Edge.");
+      return;
+    }
+
+    if (isRegListening) {
+      if (regRecognition) regRecognition.stop();
+      isRegListening = false;
+      updateRegVoiceUI('idle');
+      return;
+    }
+
+    regRecognition = initRegSpeech();
+    if (!regRecognition) return;
+
+    regRecognition.lang = getRegTargetSpeechLang();
+    const input = document.getElementById('reg-query-input');
+
+    regRecognition.onstart = () => {
+      isRegListening = true;
+      regVoiceQueryActive = true;
+      updateRegVoiceUI('listening');
+    };
+
+    regRecognition.onresult = (e) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+      for (let i = e.resultIndex; i < e.results.length; ++i) {
+        if (e.results[i].isFinal) {
+          finalTranscript += e.results[i][0].transcript;
+        } else {
+          interimTranscript += e.results[i][0].transcript;
+        }
+      }
+      if (input) {
+        input.value = finalTranscript || interimTranscript;
+      }
+    };
+
+    regRecognition.onerror = (e) => {
+      console.warn("Speech recognition error:", e.error);
+      isRegListening = false;
+      updateRegVoiceUI('idle');
+    };
+
+    regRecognition.onend = () => {
+      isRegListening = false;
+      updateRegVoiceUI('idle');
+      if (input && input.value.trim().length > 0 && regVoiceQueryActive) {
+        executeRegulatoryQuery();
+      }
+    };
+
+    try {
+      regRecognition.start();
+    } catch (err) {
+      console.error(err);
+      isRegListening = false;
+      updateRegVoiceUI('idle');
+    }
+  }
+
+  function speakSpecificRegAnswer(btn) {
+    const parentResp = btn.closest('.response-card');
+    if (!parentResp) return;
+    const bodyEl = parentResp.querySelector('.reg-answer-body');
+    if (!bodyEl) return;
+    const text = bodyEl.innerText || bodyEl.textContent;
+
+    if (isRegSpeaking) {
+      stopRegSpeech();
+      btn.innerHTML = '🔊 Read Aloud';
+      return;
+    }
+
+    btn.innerHTML = '⏹️ Stop';
+    speakRegText(text, () => {
+      btn.innerHTML = '🔊 Read Aloud';
+    });
+  }
+</script>
+{% endblock %}

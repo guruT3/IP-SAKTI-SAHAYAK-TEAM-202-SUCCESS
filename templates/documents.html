@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Document Analysis & Legal Extraction — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .doc-container {
+    max-width: 1080px;
+    margin: 40px auto 80px;
+    padding: 0 24px;
+  }
+
+  .doc-hero {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+
+  .doc-hero h1 {
+    font-size: 30px;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .doc-hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 780px;
+  }
+
+  .doc-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+
+  .dropzone {
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: 40px 20px;
+    text-align: center;
+    background: var(--bg-subtle);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .dropzone:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+
+  .drop-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .drop-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .file-input {
+    display: none;
+  }
+
+  .analysis-result-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-top: 24px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doc-container">
+  <div class="doc-hero">
+    <h1>Document Analysis & Legal Extraction</h1>
+    <p>Upload patent specifications, formulation dossiers, or regulatory licensing applications (PDF, DOCX, TXT) for statutory risk evaluation and claim analysis.</p>
+  </div>
+
+  <div class="doc-card">
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+      <div class="drop-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      </div>
+      <h3 style="font-size:18px; color:var(--text-main); margin-bottom:6px;">Upload Document for Analysis</h3>
+      <p style="font-size:14px; color:var(--text-muted);">Drag and drop your file here, or click to select (PDF, DOCX, TXT up to 16MB)</p>
+      <input type="file" id="file-input" class="file-input" accept=".pdf,.docx,.txt" onchange="handleFileSelect(event)">
+    </div>
+
+    <div id="file-details" style="display:none; margin-top:16px; padding:12px; background:var(--bg-subtle); border-radius:var(--radius-sm); font-size:14px;">
+      <strong id="file-name">filename.pdf</strong>
+      <button class="btn btn-primary" style="margin-left:auto; padding:6px 14px; font-size:13px;" onclick="uploadAndAnalyze()">Analyze Document</button>
+    </div>
+  </div>
+
+  <div id="doc-output" style="display:none;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let selectedFile = null;
+
+  function handleFileSelect(e) {
+    const files = e.target.files;
+    if (files.length > 0) {
+      selectedFile = files[0];
+      document.getElementById('file-name').textContent = selectedFile.name + ` (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+      document.getElementById('file-details').style.display = 'flex';
+    }
+  }
+
+  async function uploadAndAnalyze() {
+    if (!selectedFile) return;
+
+    const out = document.getElementById('doc-output');
+    out.style.display = 'block';
+    out.innerHTML = '<div class="analysis-result-card" style="text-align:center;"><em>Extracting document content & running statutory compliance checks...</em></div>';
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const res = await fetch('/api/analyze-document', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        out.innerHTML = `<div class="analysis-result-card" style="color:#dc2626;">Error: ${data.error || 'Document analysis failed.'}</div>`;
+        return;
+      }
+
+      out.innerHTML = `
+        <div class="analysis-result-card">
+          <h3 style="font-size:20px; margin-bottom:12px;">Document Analysis Report</h3>
+          <p style="font-size:14.5px; color:var(--text-main); margin-bottom:16px;"><strong>Summary:</strong> ${escapeHtml(data.summary || 'Document extracted successfully.')}</p>
+
+          <h4 style="font-size:16px; margin-bottom:8px;">Statutory & Compliance Findings</h4>
+          <ul style="padding-left:20px; line-height:1.7; font-size:14px;">
+            ${(data.findings || ['No major statutory exclusions detected.', 'Verify biological material source under Biological Diversity Act.']).map(f => `<li>${escapeHtml(f)}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    } catch(e) {
+      out.innerHTML = '<div class="analysis-result-card" style="color:#dc2626;">Upload failed.</div>';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+{% endblock %}

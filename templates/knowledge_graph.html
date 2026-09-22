@@ -1,0 +1,1345 @@
+{% extends "base.html" %}
+{% block title %}Knowledge Graph — IP-SAKTI SAHAYAK{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ==========================================================
+     Knowledge Graph — inherits base.html tokens (--paper, --gold,
+     --teal, --rule…). The graph canvas is the one loud surface on
+     this page: everything around it (controls, inspector) stays
+     quiet so the network reads first.
+     ========================================================== */
+  .kg-page {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 36px 28px 24px;
+  }
+
+  /* ---- Header ---- */
+  .kg-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 22px;
+  }
+
+  .kg-head h1 {
+    font-size: clamp(26px, 3.4vw, 38px);
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+
+  .kg-head p {
+    margin: 0;
+    font-size: 14.5px;
+    max-width: 72ch;
+  }
+
+  .kg-readout {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-soft);
+    text-align: right;
+    line-height: 1.9;
+    flex-shrink: 0;
+  }
+
+  .kg-readout b {
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .kg-readout .live {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: var(--glow-teal-soft);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .kg-readout .live.offline {
+    background: var(--gold);
+    box-shadow: var(--glow-gold-soft);
+  }
+
+  /* ---- Control strip ---- */
+  .kg-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 16px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-m);
+    margin-bottom: 18px;
+  }
+
+  .kg-search {
+    position: relative;
+    flex: 1 1 300px;
+    min-width: 220px;
+  }
+
+  .kg-search svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-soft);
+    pointer-events: none;
+  }
+
+  .kg-search input {
+    width: 100%;
+    padding: 11px 13px 11px 38px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text);
+    background: var(--paper);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-s);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .kg-search input::placeholder {
+    color: var(--text-soft);
+  }
+
+  .kg-search input:focus {
+    border-color: var(--gold);
+    box-shadow: var(--glow-gold-soft);
+  }
+
+  .kg-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .kg-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    box-shadow: var(--glow-gold-soft);
+  }
+
+  .kg-btn-gold {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--on-gold);
+    font-weight: 600;
+    box-shadow: var(--glow-gold-soft);
+  }
+
+  .kg-btn-gold:hover {
+    background: var(--gold-deep);
+    border-color: var(--gold-deep);
+    color: var(--on-gold);
+    box-shadow: var(--glow-gold);
+  }
+
+  .kg-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* ---- Type filters ---- */
+  .kg-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .kg-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 13px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-soft);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .kg-chip .swatch {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background: var(--c);
+    opacity: 0.35;
+    transition: opacity 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .kg-chip:hover {
+    color: var(--text);
+    border-color: var(--rule-strong);
+  }
+
+  .kg-chip.on {
+    color: var(--ink);
+    border-color: var(--c);
+    background: color-mix(in srgb, var(--c) 12%, transparent);
+  }
+
+  .kg-chip.on .swatch {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--c);
+  }
+
+  .kg-chip .n {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    opacity: 0.6;
+  }
+
+  /* ---- Layout ---- */
+  .kg-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 348px;
+    gap: 18px;
+    align-items: start;
+  }
+
+  @media (max-width: 1080px) {
+    .kg-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* ---- Canvas ---- */
+  .kg-canvas {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+  }
+
+  .kg-canvas-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .kg-hint {
+    font-size: 12.5px;
+    color: var(--text-soft);
+    margin: 0;
+    max-width: none;
+  }
+
+  .kg-zoom {
+    display: flex;
+    gap: 6px;
+  }
+
+  .kg-zoom .kg-btn {
+    padding: 6px 11px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .kg-stage {
+    position: relative;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(255, 176, 32, 0.05), transparent 60%),
+      var(--paper);
+  }
+
+  .kg-stage svg {
+    display: block;
+    width: 100%;
+    height: 640px;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .kg-stage svg.dragging {
+    cursor: grabbing;
+  }
+
+  @media (max-width: 640px) {
+    .kg-stage svg {
+      height: 460px;
+    }
+  }
+
+  .kg-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 640px;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  /* graph primitives */
+  .edge {
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+    opacity: 0.45;
+    transition: stroke 0.15s ease, opacity 0.15s ease, stroke-width 0.15s ease;
+  }
+
+  .edge.lit {
+    stroke: var(--gold);
+    stroke-width: 2;
+    opacity: 1;
+  }
+
+  .edge.dim {
+    opacity: 0.06;
+  }
+
+  .vertex {
+    cursor: pointer;
+  }
+
+  .vertex circle.disc {
+    transition: opacity 0.18s ease;
+  }
+
+  .vertex text {
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    font-weight: 500;
+    fill: var(--text);
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3.5px;
+    stroke-linejoin: round;
+    pointer-events: none;
+    transition: opacity 0.18s ease, fill 0.18s ease;
+  }
+
+  .vertex.dim circle.disc,
+  .vertex.dim text {
+    opacity: 0.16;
+  }
+
+  .vertex.lit text,
+  .vertex.picked text {
+    fill: var(--ink-strong);
+  }
+
+  .vertex .aura {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .vertex.lit .aura,
+  .vertex.picked .aura {
+    opacity: 0.28;
+  }
+
+  /* ---- Inspector ---- */
+  .kg-inspector {
+    position: sticky;
+    top: 82px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+  }
+
+  .kg-insp-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--chrome);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .kg-insp-bar h2 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--chrome-ink);
+  }
+
+  .kg-type-tag {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: var(--radius-s);
+    border: 1px solid var(--rule-strong);
+    color: var(--text-soft);
+    white-space: nowrap;
+  }
+
+  .kg-insp-body {
+    padding: 18px 16px;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .kg-insp-body h3 {
+    font-size: 19px;
+    color: var(--ink);
+    margin: 0 0 4px;
+    line-height: 1.3;
+  }
+
+  .kg-insp-id {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-soft);
+    margin: 0 0 14px;
+  }
+
+  .kg-insp-body p {
+    font-size: 13.5px;
+    max-width: none;
+  }
+
+  .kg-flag {
+    padding: 11px 13px;
+    margin: 14px 0 4px;
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--gold-tint);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  }
+
+  .kg-degree {
+    display: flex;
+    gap: 8px;
+    margin: 14px 0 0;
+  }
+
+  .kg-degree div {
+    flex: 1;
+    padding: 9px 11px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-s);
+  }
+
+  .kg-degree b {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--gold);
+  }
+
+  .kg-degree span {
+    font-size: 11px;
+    color: var(--text-soft);
+  }
+
+  .kg-rel-head {
+    margin: 22px 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .kg-rel-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .kg-rel-list li {
+    padding: 9px 12px;
+    border: 1px solid var(--rule);
+    border-left-width: 2px;
+    border-radius: 0 var(--radius-s) var(--radius-s) 0;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  }
+
+  .kg-rel-list li:hover {
+    background: var(--gold-tint);
+    transform: translateX(3px);
+  }
+
+  .kg-rel-list .verb {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--teal);
+    margin-bottom: 2px;
+  }
+
+  .kg-rel-list .target {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .kg-blank {
+    text-align: center;
+    padding: 30px 12px;
+  }
+
+  .kg-blank .glyph {
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 14px;
+    display: grid;
+    place-items: center;
+    border: 1px dashed var(--rule-strong);
+    border-radius: var(--radius-s);
+    color: var(--gold);
+  }
+
+  .kg-blank p {
+    font-size: 13px;
+    margin: 0 auto;
+    max-width: 30ch;
+  }
+
+  /* ---- Legend ---- */
+  .kg-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 11px 14px;
+    border-top: 1px solid var(--rule);
+  }
+  .edge {
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+.edge {
+  stroke: var(--rule-strong, #9a8f7a);
+  stroke-width: 1.25;
+  opacity: 0.55;
+  transition: stroke 0.15s ease, opacity 0.15s ease, stroke-width 0.15s ease;
+}
+
+  .kg-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--text-soft);
+  }
+
+  .kg-legend i {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+
+  .kg-insp-body::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .kg-insp-body::-webkit-scrollbar-thumb {
+    background: var(--rule-strong);
+    border-radius: 8px;
+  }
+
+  @media (max-width: 520px) {
+    .kg-page {
+      padding: 24px 16px 20px;
+    }
+
+    .kg-readout {
+      text-align: left;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="kg-page">
+
+  <header class="kg-head">
+    <div>
+      <h1>Knowledge Graph</h1>
+      <p>Trace how a botanical connects to its actives, the Samhita that first recorded it, the statutory bar that blocks
+        a claim over it, and the case that settled the point. Click a node to open its file.</p>
+    </div>
+    <div class="kg-readout">
+      <div><span class="live" id="kg-live"></span><span id="kg-source">connecting…</span></div>
+      <div id="kg-count">—</div>
+    </div>
+  </header>
+
+  <section class="kg-controls">
+    <div class="kg-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+        stroke-linecap="round">
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-3.6-3.6" />
+      </svg>
+      <input type="text" id="kg-search" autocomplete="off"
+        placeholder="Find an entity — Curcuma longa, Section 3(d), TKDL, Novartis…">
+    </div>
+    <div class="kg-btn-group">
+      <button type="button" class="kg-btn" id="kg-relax">Re-run layout</button>
+      <button type="button" class="kg-btn kg-btn-gold" id="kg-reset">Clear filters</button>
+    </div>
+    <div class="kg-filters" id="kg-filters"></div>
+  </section>
+
+  <div class="kg-layout">
+    <section class="kg-canvas">
+      <div class="kg-canvas-bar">
+        <p class="kg-hint">Drag a node to reposition it · scroll to zoom · drag the background to pan</p>
+        <div class="kg-zoom">
+          <button type="button" class="kg-btn" id="kg-zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" class="kg-btn" id="kg-zoom-out" aria-label="Zoom out">−</button>
+          <button type="button" class="kg-btn" id="kg-fit">Fit</button>
+        </div>
+      </div>
+      <div class="kg-stage" id="kg-stage">
+        <div class="kg-loading">Loading ontology…</div>
+      </div>
+      <div class="kg-legend" id="kg-legend"></div>
+    </section>
+
+    <aside class="kg-inspector">
+      <div class="kg-insp-bar">
+        <h2>Entity file</h2>
+        <span class="kg-type-tag" id="kg-type-tag">none selected</span>
+      </div>
+      <div class="kg-insp-body">
+        <div class="kg-blank" id="kg-blank">
+          <div class="glyph">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="6" cy="7" r="2.4" />
+              <circle cx="18" cy="6" r="2.4" />
+              <circle cx="12" cy="17.5" r="2.4" />
+              <path d="M7.8 8.6 10.6 15.6M16.6 8.2 13.4 15.6M8.3 6.6 15.6 6.2" stroke-linecap="round" />
+            </svg>
+          </div>
+          <p>Pick a node to see its statutory exposure and every relationship attached to it.</p>
+        </div>
+
+        <div id="kg-file" style="display:none;">
+          <h3 id="kg-label"></h3>
+          <p class="kg-insp-id" id="kg-id"></p>
+          <p id="kg-desc"></p>
+          <div class="kg-flag" id="kg-flag"></div>
+          <div class="kg-degree">
+            <div><b id="kg-deg">0</b><span>relations</span></div>
+            <div><b id="kg-out">0</b><span>outgoing</span></div>
+            <div><b id="kg-in">0</b><span>incoming</span></div>
+          </div>
+          <div id="kg-rel-box" style="display:none;">
+            <h4 class="kg-rel-head">Attached relationships</h4>
+            <ul class="kg-rel-list" id="kg-rel-list"></ul>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* ==========================================================
+     IP-SAKTI SAHAYAK — force-directed knowledge graph.
+     Self-contained: no D3, no static/js file. Pulls from
+     /api/knowledge-graph via apiFetch() (defined in base.html)
+     and falls back to a bundled ontology if the route is absent.
+     ========================================================== */
+  (function () {
+    const SVG_NS = "http://www.w3.org/2000/svg";
+
+    const TYPE_COLOR = {
+      botanical: "#35e0c0",
+      active: "#38bdf8",
+      classical_text: "#ffb020",
+      formulation: "#b68cff",
+      law_section: "#ff6b6b",
+      regulation: "#f472b6",
+      authority: "#6ea8ff",
+      case_law: "#9d8cff",
+      treaty: "#ffcf6e",
+      institution: "#5fd3a8",
+    };
+
+    const TYPES = [
+      { type: "botanical", label: "Botanicals" },
+      { type: "active", label: "Actives" },
+      { type: "classical_text", label: "Classical texts" },
+      { type: "formulation", label: "Formulations" },
+      { type: "law_section", label: "Statutes" },
+      { type: "authority", label: "Authorities" },
+      { type: "case_law", label: "Case law" },
+      { type: "treaty", label: "Treaties" },
+      { type: "institution", label: "Institutions" },
+    ];
+
+    const TYPE_DESC = {
+      botanical: "Medicinal plant documented in the Ayurvedic Pharmacopoeia of India and in classical Samhita treatises.",
+      active: "Purified or standardised phytochemical constituent with therapeutic activity, derived from a documented botanical.",
+      classical_text: "Sanskrit medical treatise listed in the First Schedule of the Drugs and Cosmetics Act, 1940.",
+      formulation: "Multi-ingredient classical or proprietary preparation built from documented botanicals.",
+      law_section: "Statutory provision setting eligibility, exclusion or disclosure obligations under Indian patent law.",
+      authority: "Body with administrative jurisdiction over intellectual property, AYUSH or biological diversity.",
+      case_law: "Decided matter shaping how traditional-knowledge prior art and Section 3(d) are read.",
+      treaty: "International instrument governing access, benefit-sharing and disclosure of genetic resources.",
+      institution: "Research or documentation body supplying evidence for opposition proceedings.",
+    };
+
+    const TYPE_FLAG = {
+      botanical: "Documented use is citable prior art under Section 13 and is searchable through the TKDL. Expect a novelty objection on any claim reading on traditional use.",
+      active: "Section 3(d) blocks a claim to a new form of a known substance unless significantly enhanced therapeutic efficacy is shown on evidence.",
+      classical_text: "Disclosure here destroys novelty worldwide. TKDL transcriptions sit with the EPO, USPTO and other major offices.",
+      formulation: "Section 3(e) bars mere admixtures; Section 3(p) bars traditional-knowledge aggregations outright.",
+      law_section: "Cite this provision directly in pre-grant or post-grant opposition pleadings.",
+      authority: "Jurisdictional touchpoint. Confirm Section 6 clearance from the NBA before any foreign filing on Indian biological material.",
+      case_law: "Quote the ratio when arguing opposition or revocation on comparable facts.",
+      treaty: "Drives India's disclosure-of-origin and benefit-sharing obligations in domestic law.",
+      institution: "Source of documented evidence and expert affidavits for opposition proceedings.",
+    };
+
+    /* ---------- Bundled ontology (fallback when the API is unavailable) ---------- */
+    const FALLBACK = {
+      nodes: [
+        { id: "bot_curcuma", label: "Curcuma longa (Haridra)", type: "botanical", group: "Botanicals" },
+        { id: "bot_azadir", label: "Azadirachta indica (Neem)", type: "botanical", group: "Botanicals" },
+        { id: "bot_withania", label: "Withania somnifera (Ashwagandha)", type: "botanical", group: "Botanicals" },
+        { id: "bot_ocimum", label: "Ocimum sanctum (Tulsi)", type: "botanical", group: "Botanicals" },
+        { id: "bot_emblica", label: "Phyllanthus emblica (Amla)", type: "botanical", group: "Botanicals" },
+        { id: "bot_bacopa", label: "Bacopa monnieri (Brahmi)", type: "botanical", group: "Botanicals" },
+        { id: "bot_boswellia", label: "Boswellia serrata (Shallaki)", type: "botanical", group: "Botanicals" },
+
+        { id: "act_curcumin", label: "Curcumin", type: "active", group: "Actives" },
+        { id: "act_azadirachtin", label: "Azadirachtin", type: "active", group: "Actives" },
+        { id: "act_withanolide", label: "Withanolide A", type: "active", group: "Actives" },
+        { id: "act_bacoside", label: "Bacoside A", type: "active", group: "Actives" },
+        { id: "act_boswellic", label: "Boswellic acid", type: "active", group: "Actives" },
+
+        { id: "txt_charaka", label: "Charaka Samhita", type: "classical_text", group: "Classical Texts" },
+        { id: "txt_sushruta", label: "Sushruta Samhita", type: "classical_text", group: "Classical Texts" },
+        { id: "txt_ashtanga", label: "Ashtanga Hridaya", type: "classical_text", group: "Classical Texts" },
+        { id: "txt_bhava", label: "Bhavaprakasha Nighantu", type: "classical_text", group: "Classical Texts" },
+
+        { id: "frm_chyawan", label: "Chyawanprash", type: "formulation", group: "Formulations" },
+        { id: "frm_triphala", label: "Triphala Churna", type: "formulation", group: "Formulations" },
+
+        { id: "law_3d", label: "Section 3(d), Patents Act", type: "law_section", group: "Statutes" },
+        { id: "law_3e", label: "Section 3(e) — mere admixture", type: "law_section", group: "Statutes" },
+        { id: "law_3j", label: "Section 3(j) — plants and varieties", type: "law_section", group: "Statutes" },
+        { id: "law_3p", label: "Section 3(p) — traditional knowledge", type: "law_section", group: "Statutes" },
+        { id: "law_10_4", label: "Section 10(4)(d)(ii) — source disclosure", type: "law_section", group: "Statutes" },
+        { id: "law_25", label: "Section 25 — opposition", type: "law_section", group: "Statutes" },
+        { id: "law_bda6", label: "Section 6, Biological Diversity Act", type: "law_section", group: "Statutes" },
+
+        { id: "auth_cgpdtm", label: "Indian Patent Office (CGPDTM)", type: "authority", group: "Authorities" },
+        { id: "auth_nba", label: "National Biodiversity Authority", type: "authority", group: "Authorities" },
+        { id: "auth_ayush", label: "Ministry of AYUSH", type: "authority", group: "Authorities" },
+        { id: "auth_uspto", label: "USPTO", type: "authority", group: "Authorities" },
+        { id: "auth_epo", label: "European Patent Office", type: "authority", group: "Authorities" },
+
+        { id: "inst_tkdl", label: "TKDL", type: "institution", group: "Institutions" },
+        { id: "inst_csir", label: "CSIR", type: "institution", group: "Institutions" },
+        { id: "inst_ccras", label: "CCRAS", type: "institution", group: "Institutions" },
+
+        { id: "case_turmeric", label: "Turmeric revocation (US 5,401,504)", type: "case_law", group: "Landmark Cases" },
+        { id: "case_neem", label: "Neem — EPO T 0416/01", type: "case_law", group: "Landmark Cases" },
+        { id: "case_basmati", label: "Basmati (RiceTec) dispute", type: "case_law", group: "Landmark Cases" },
+        { id: "case_novartis", label: "Novartis AG v. Union of India (2013)", type: "case_law", group: "Landmark Cases" },
+
+        { id: "trt_cbd", label: "Convention on Biological Diversity", type: "treaty", group: "Treaties" },
+        { id: "trt_nagoya", label: "Nagoya Protocol", type: "treaty", group: "Treaties" },
+        { id: "trt_trips", label: "TRIPS Agreement", type: "treaty", group: "Treaties" },
+      ],
+      edges: [
+        { source: "bot_curcuma", target: "act_curcumin", relation: "contains_active" },
+        { source: "bot_azadir", target: "act_azadirachtin", relation: "contains_active" },
+        { source: "bot_withania", target: "act_withanolide", relation: "contains_active" },
+        { source: "bot_bacopa", target: "act_bacoside", relation: "contains_active" },
+        { source: "bot_boswellia", target: "act_boswellic", relation: "contains_active" },
+
+        { source: "txt_charaka", target: "bot_curcuma", relation: "documents_use_of" },
+        { source: "txt_charaka", target: "bot_withania", relation: "documents_use_of" },
+        { source: "txt_sushruta", target: "bot_azadir", relation: "documents_use_of" },
+        { source: "txt_sushruta", target: "bot_curcuma", relation: "documents_use_of" },
+        { source: "txt_ashtanga", target: "bot_ocimum", relation: "documents_use_of" },
+        { source: "txt_bhava", target: "bot_emblica", relation: "documents_use_of" },
+        { source: "txt_bhava", target: "bot_bacopa", relation: "documents_use_of" },
+        { source: "txt_charaka", target: "frm_chyawan", relation: "prescribes_formulation" },
+        { source: "txt_sushruta", target: "frm_triphala", relation: "prescribes_formulation" },
+        { source: "frm_chyawan", target: "bot_emblica", relation: "principal_ingredient" },
+        { source: "frm_triphala", target: "bot_emblica", relation: "principal_ingredient" },
+
+        { source: "inst_tkdl", target: "txt_charaka", relation: "codifies" },
+        { source: "inst_tkdl", target: "txt_sushruta", relation: "codifies" },
+        { source: "inst_tkdl", target: "txt_ashtanga", relation: "codifies" },
+        { source: "inst_tkdl", target: "txt_bhava", relation: "codifies" },
+        { source: "inst_csir", target: "inst_tkdl", relation: "co_administers" },
+        { source: "auth_ayush", target: "inst_tkdl", relation: "co_administers" },
+        { source: "inst_ccras", target: "auth_ayush", relation: "research_arm_of" },
+        { source: "inst_tkdl", target: "auth_epo", relation: "access_agreement_with" },
+        { source: "inst_tkdl", target: "auth_uspto", relation: "access_agreement_with" },
+
+        { source: "law_3d", target: "act_curcumin", relation: "bars_unless_enhanced_efficacy" },
+        { source: "law_3d", target: "act_withanolide", relation: "bars_unless_enhanced_efficacy" },
+        { source: "law_3d", target: "act_boswellic", relation: "bars_unless_enhanced_efficacy" },
+        { source: "law_3e", target: "frm_triphala", relation: "bars_as_admixture" },
+        { source: "law_3p", target: "frm_chyawan", relation: "bars_as_traditional_knowledge" },
+        { source: "law_3p", target: "bot_curcuma", relation: "bars_as_traditional_knowledge" },
+        { source: "law_3j", target: "bot_azadir", relation: "excludes_plant_subject_matter" },
+        { source: "law_10_4", target: "bot_withania", relation: "requires_source_disclosure" },
+        { source: "law_bda6", target: "auth_nba", relation: "administered_by" },
+        { source: "law_bda6", target: "bot_emblica", relation: "requires_prior_approval" },
+        { source: "law_25", target: "auth_cgpdtm", relation: "filed_before" },
+
+        { source: "auth_cgpdtm", target: "law_3d", relation: "applies_provision" },
+        { source: "auth_cgpdtm", target: "law_3p", relation: "applies_provision" },
+        { source: "auth_cgpdtm", target: "law_10_4", relation: "enforces_disclosure" },
+
+        { source: "case_turmeric", target: "bot_curcuma", relation: "revoked_patent_on" },
+        { source: "case_turmeric", target: "auth_uspto", relation: "decided_by" },
+        { source: "case_turmeric", target: "inst_csir", relation: "opposition_filed_by" },
+        { source: "case_neem", target: "bot_azadir", relation: "revoked_patent_on" },
+        { source: "case_neem", target: "auth_epo", relation: "decided_by" },
+        { source: "case_basmati", target: "auth_uspto", relation: "decided_by" },
+        { source: "case_novartis", target: "law_3d", relation: "interprets_provision" },
+        { source: "case_novartis", target: "auth_cgpdtm", relation: "appealed_from" },
+
+        { source: "trt_cbd", target: "law_bda6", relation: "implemented_by" },
+        { source: "trt_nagoya", target: "auth_nba", relation: "obligates" },
+        { source: "trt_nagoya", target: "trt_cbd", relation: "supplements" },
+        { source: "trt_trips", target: "law_3d", relation: "flexibility_invoked_by" },
+      ],
+    };
+
+    /* ---------- State ---------- */
+    let ALL_NODES = [], ALL_EDGES = [];
+    let nodes = [], edges = [], nodeById = new Map();
+    let activeTypes = new Set(TYPES.map(t => t.type));
+    let query = "", pickedId = null, hoverId = null;
+    let sim = { alpha: 1, running: false };
+    let view = { k: 1, x: 0, y: 0 };
+    let W = 900, H = 640;
+
+    const stage = document.getElementById("kg-stage");
+    let svg, gRoot, gEdges, gNodes;
+    const edgeEls = [], vertexEls = new Map();
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => (window.escapeHtml ? escapeHtml(s) : String(s == null ? "" : s));
+
+    /* ---------- Boot ---------- */
+    buildFilters();
+    buildLegend();
+    wire();
+    load();
+
+    async function load() {
+      let graph = null, live = false;
+      try {
+        const data = await apiFetch("/api/knowledge-graph");
+        if (data && data.success && data.graph && Array.isArray(data.graph.nodes) && data.graph.nodes.length) {
+          graph = data.graph;
+          live = true;
+        }
+      } catch (err) {
+        console.warn("Knowledge graph API unavailable, using bundled ontology.", err);
+      }
+
+      graph = graph || FALLBACK;
+ALL_NODES = graph.nodes.map(n => Object.assign({}, n));
+
+const rawEdges = graph.edges || graph.links || graph.relationships || graph.relations || [];
+ALL_EDGES = rawEdges.map(e => ({
+  source: e.source ?? e.from ?? e.src ?? e.source_id,
+  target: e.target ?? e.to ?? e.dst ?? e.target_id,
+  relation: e.relation ?? e.type ?? e.label ?? e.rel ?? "related_to",
+})).filter(e => e.source && e.target);
+
+console.log("Knowledge graph:", ALL_NODES.length, "nodes,", ALL_EDGES.length, "edges");
+
+      mount();
+      rebuild(true);
+    }
+
+    /* ---------- Chrome ---------- */
+    function buildFilters() {
+      const box = $("kg-filters");
+      box.innerHTML = TYPES.map(t => `
+        <span class="kg-chip on" data-type="${t.type}" style="--c:${TYPE_COLOR[t.type]}" role="button" tabindex="0">
+          <i class="swatch"></i>${t.label}<em class="n" data-count="${t.type}"></em>
+        </span>`).join("");
+
+      box.querySelectorAll(".kg-chip").forEach(chip => {
+        const toggle = () => {
+          const t = chip.dataset.type;
+          if (activeTypes.has(t)) { activeTypes.delete(t); chip.classList.remove("on"); }
+          else { activeTypes.add(t); chip.classList.add("on"); }
+          rebuild();
+        };
+        chip.addEventListener("click", toggle);
+        chip.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+        });
+      });
+    }
+
+    function buildLegend() {
+      $("kg-legend").innerHTML = TYPES.map(t =>
+        `<span><i style="background:${TYPE_COLOR[t.type]}"></i>${t.label}</span>`).join("");
+    }
+
+    function wire() {
+      $("kg-search").addEventListener("input", (e) => {
+        query = e.target.value.toLowerCase().trim();
+        rebuild();
+      });
+      $("kg-relax").addEventListener("click", () => rebuild(true));
+      $("kg-reset").addEventListener("click", () => {
+        $("kg-search").value = "";
+        query = ""; pickedId = null;
+        activeTypes = new Set(TYPES.map(t => t.type));
+        document.querySelectorAll(".kg-chip").forEach(c => c.classList.add("on"));
+        view = { k: 1, x: 0, y: 0 };
+        clearFile();
+        rebuild(true);
+      });
+      $("kg-zoom-in").addEventListener("click", () => zoom(1.25));
+      $("kg-zoom-out").addEventListener("click", () => zoom(0.8));
+      $("kg-fit").addEventListener("click", () => {
+        view = { k: 1, x: 0, y: 0 };
+        applyView();
+        sim.alpha = 0.6;
+        run();
+      });
+      window.addEventListener("resize", size);
+    }
+
+    /* ---------- SVG ---------- */
+    function mount() {
+      stage.innerHTML = "";
+      svg = document.createElementNS(SVG_NS, "svg");
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+      const defs = document.createElementNS(SVG_NS, "defs");
+      defs.innerHTML =
+        '<pattern id="kg-grid" width="36" height="36" patternUnits="userSpaceOnUse">' +
+        '<path d="M36 0H0V36" fill="none" stroke="rgba(241,243,251,0.06)" stroke-width="1"/></pattern>';
+      svg.appendChild(defs);
+
+      const bg = document.createElementNS(SVG_NS, "rect");
+      bg.setAttribute("width", "100%");
+      bg.setAttribute("height", "100%");
+      bg.setAttribute("fill", "url(#kg-grid)");
+      svg.appendChild(bg);
+
+      gRoot = document.createElementNS(SVG_NS, "g");
+      gEdges = document.createElementNS(SVG_NS, "g");
+      gNodes = document.createElementNS(SVG_NS, "g");
+      gRoot.appendChild(gEdges);
+      gRoot.appendChild(gNodes);
+      svg.appendChild(gRoot);
+      stage.appendChild(svg);
+
+      size();
+      panZoom();
+
+      svg.addEventListener("click", (e) => {
+        if (!e.target.closest(".vertex")) { pickedId = null; clearFile(); paint(); }
+      });
+    }
+
+    function size() {
+      if (!svg) return;
+      W = stage.clientWidth || 900;
+      H = svg.clientHeight || 640;
+      svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    }
+
+    /* ---------- Build ---------- */
+    function rebuild(reseed) {
+      const prev = new Map(nodes.map(n => [n.id, n]));
+
+      nodes = ALL_NODES
+        .filter(n => activeTypes.has(n.type) &&
+          (!query || n.label.toLowerCase().includes(query) || n.id.toLowerCase().includes(query)))
+        .map(n => {
+          const old = !reseed && prev.get(n.id);
+          if (old) return old;
+          return Object.assign({}, n, {
+            x: W / 2 + (Math.random() - 0.5) * W * 0.6,
+            y: H / 2 + (Math.random() - 0.5) * H * 0.6,
+            vx: 0, vy: 0,
+          });
+        });
+
+      nodeById = new Map(nodes.map(n => [n.id, n]));
+      edges = ALL_EDGES.filter(e => nodeById.has(e.source) && nodeById.has(e.target));
+
+      const deg = {};
+      edges.forEach(e => { deg[e.source] = (deg[e.source] || 0) + 1; deg[e.target] = (deg[e.target] || 0) + 1; });
+      nodes.forEach(n => { n.deg = deg[n.id] || 0; n.r = 10 + Math.min(10, n.deg * 1.6); });
+
+      $("kg-count").innerHTML = "<b>" + nodes.length + "</b> entities · <b>" + edges.length + "</b> relationships";
+
+      const counts = {};
+      ALL_NODES.forEach(n => { counts[n.type] = (counts[n.type] || 0) + 1; });
+      document.querySelectorAll("[data-count]").forEach(el => {
+        el.textContent = counts[el.dataset.count] ? counts[el.dataset.count] : "0";
+      });
+
+      draw();
+      sim.alpha = 1;
+      run();
+    }
+
+    function draw() {
+      gEdges.innerHTML = "";
+      gNodes.innerHTML = "";
+      edgeEls.length = 0;
+      vertexEls.clear();
+
+      edges.forEach(() => {
+        const line = document.createElementNS(SVG_NS, "line");
+        line.setAttribute("class", "edge");
+        gEdges.appendChild(line);
+        edgeEls.push(line);
+      });
+
+      nodes.forEach(n => {
+        const color = TYPE_COLOR[n.type] || "#ffb020";
+        const g = document.createElementNS(SVG_NS, "g");
+        g.setAttribute("class", "vertex");
+
+        const aura = document.createElementNS(SVG_NS, "circle");
+        aura.setAttribute("class", "aura");
+        aura.setAttribute("r", n.r + 11);
+        aura.setAttribute("fill", color);
+
+        const disc = document.createElementNS(SVG_NS, "circle");
+        disc.setAttribute("class", "disc");
+        disc.setAttribute("r", n.r);
+        disc.setAttribute("fill", color);
+        disc.setAttribute("fill-opacity", "0.88");
+        disc.setAttribute("stroke", "#0a0e1a");
+        disc.setAttribute("stroke-width", "1.5");
+
+        const text = document.createElementNS(SVG_NS, "text");
+        text.setAttribute("dy", n.r + 14);
+        text.textContent = n.label.length > 26 ? n.label.slice(0, 24) + "…" : n.label;
+
+        g.appendChild(aura);
+        g.appendChild(disc);
+        g.appendChild(text);
+        gNodes.appendChild(g);
+        vertexEls.set(n.id, { g: g, disc: disc });
+
+        g.addEventListener("pointerenter", () => { hoverId = n.id; paint(); });
+        g.addEventListener("pointerleave", () => { hoverId = null; paint(); });
+        drag(g, n);
+      });
+
+      paint();
+    }
+
+    /* ---------- Simulation ---------- */
+    function run() {
+      if (sim.running) return;
+      sim.running = true;
+      const step = () => {
+        tick();
+        place();
+        if (sim.alpha > 0.005) requestAnimationFrame(step);
+        else sim.running = false;
+      };
+      requestAnimationFrame(step);
+    }
+
+    function tick() {
+      const k = sim.alpha, cx = W / 2, cy = H / 2;
+
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+          const b = nodes[j];
+          let dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy;
+          if (d2 < 1) { d2 = 1; dx = Math.random() - 0.5; dy = Math.random() - 0.5; }
+          const d = Math.sqrt(d2), f = (2700 * k) / d2;
+          const fx = (dx / d) * f, fy = (dy / d) * f;
+          a.vx -= fx; a.vy -= fy;
+          b.vx += fx; b.vy += fy;
+        }
+      }
+
+      edges.forEach(e => {
+        const a = nodeById.get(e.source), b = nodeById.get(e.target);
+        if (!a || !b) return;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const d = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+        const f = ((d - 120) / d) * 0.034 * k;
+        a.vx += dx * f; a.vy += dy * f;
+        b.vx -= dx * f; b.vy -= dy * f;
+      });
+
+      const hubs = {};
+      nodes.forEach(n => {
+        if (!hubs[n.type]) hubs[n.type] = { x: 0, y: 0, c: 0 };
+        hubs[n.type].x += n.x; hubs[n.type].y += n.y; hubs[n.type].c++;
+      });
+      Object.keys(hubs).forEach(t => { hubs[t].x /= hubs[t].c; hubs[t].y /= hubs[t].c; });
+
+      nodes.forEach(n => {
+        n.vx += (cx - n.x) * 0.0032 * k;
+        n.vy += (cy - n.y) * 0.0032 * k;
+        const hub = hubs[n.type];
+        n.vx += (hub.x - n.x) * 0.010 * k;
+        n.vy += (hub.y - n.y) * 0.010 * k;
+
+        if (n.held) { n.vx = 0; n.vy = 0; return; }
+        n.vx *= 0.82; n.vy *= 0.82;
+        n.x += Math.max(-24, Math.min(24, n.vx));
+        n.y += Math.max(-24, Math.min(24, n.vy));
+        n.x = Math.max(36, Math.min(W - 36, n.x));
+        n.y = Math.max(36, Math.min(H - 36, n.y));
+      });
+
+      sim.alpha *= 0.985;
+    }
+
+    function place() {
+      edges.forEach((e, i) => {
+        const a = nodeById.get(e.source), b = nodeById.get(e.target), el = edgeEls[i];
+        if (!a || !b || !el) return;
+        el.setAttribute("x1", a.x); el.setAttribute("y1", a.y);
+        el.setAttribute("x2", b.x); el.setAttribute("y2", b.y);
+      });
+      nodes.forEach(n => {
+        const el = vertexEls.get(n.id);
+        if (el) el.g.setAttribute("transform", "translate(" + n.x + "," + n.y + ")");
+      });
+    }
+
+    /* ---------- Highlight ---------- */
+    function neighbours(id) {
+      const set = new Set([id]);
+      edges.forEach(e => {
+        if (e.source === id) set.add(e.target);
+        if (e.target === id) set.add(e.source);
+      });
+      return set;
+    }
+
+    function paint() {
+      const focus = hoverId || pickedId;
+      const near = focus ? neighbours(focus) : null;
+
+      vertexEls.forEach((el, id) => {
+        el.g.classList.toggle("dim", !!near && !near.has(id));
+        el.g.classList.toggle("lit", !!near && near.has(id));
+        el.g.classList.toggle("picked", id === pickedId);
+        el.disc.setAttribute("stroke", id === pickedId ? "#ffffff" : "#0a0e1a");
+        el.disc.setAttribute("stroke-width", id === pickedId ? "2.5" : "1.5");
+      });
+
+      edges.forEach((e, i) => {
+        const el = edgeEls[i];
+        if (!el) return;
+        const on = focus && (e.source === focus || e.target === focus);
+        el.classList.toggle("lit", !!on);
+        el.classList.toggle("dim", !!focus && !on);
+      });
+    }
+
+    /* ---------- Drag, pan, zoom ---------- */
+    function drag(g, node) {
+      let active = false, moved = false;
+
+      g.addEventListener("pointerdown", (ev) => {
+        ev.stopPropagation();
+        active = true; moved = false;
+        node.held = true;
+        g.setPointerCapture(ev.pointerId);
+      });
+
+      g.addEventListener("pointermove", (ev) => {
+        if (!active) return;
+        moved = true;
+        const p = toGraph(ev);
+        node.x = p.x; node.y = p.y; node.vx = 0; node.vy = 0;
+        sim.alpha = Math.max(sim.alpha, 0.3);
+        run();
+        place();
+      });
+
+      const release = (ev) => {
+        if (!active) return;
+        active = false;
+        node.held = false;
+        try { g.releasePointerCapture(ev.pointerId); } catch (e) { }
+        if (!moved) openFile(node.id);
+        sim.alpha = Math.max(sim.alpha, 0.22);
+        run();
+      };
+      g.addEventListener("pointerup", release);
+      g.addEventListener("pointercancel", release);
+    }
+
+    function toGraph(ev) {
+      const rect = svg.getBoundingClientRect();
+      const sx = (ev.clientX - rect.left) * (W / rect.width);
+      const sy = (ev.clientY - rect.top) * (H / rect.height);
+      return { x: (sx - view.x) / view.k, y: (sy - view.y) / view.k };
+    }
+
+    function applyView() {
+      gRoot.setAttribute("transform", "translate(" + view.x + "," + view.y + ") scale(" + view.k + ")");
+    }
+
+    function zoom(factor, ox, oy) {
+      ox = ox === undefined ? W / 2 : ox;
+      oy = oy === undefined ? H / 2 : oy;
+      const k2 = Math.max(0.35, Math.min(3.5, view.k * factor));
+      view.x = ox - (ox - view.x) * (k2 / view.k);
+      view.y = oy - (oy - view.y) * (k2 / view.k);
+      view.k = k2;
+      applyView();
+    }
+
+    function panZoom() {
+      let panning = false, last = null;
+
+      svg.addEventListener("pointerdown", (ev) => {
+        if (ev.target.closest(".vertex")) return;
+        panning = true;
+        last = { x: ev.clientX, y: ev.clientY };
+        svg.classList.add("dragging");
+      });
+
+      window.addEventListener("pointermove", (ev) => {
+        if (!panning) return;
+        const rect = svg.getBoundingClientRect();
+        view.x += (ev.clientX - last.x) * (W / rect.width);
+        view.y += (ev.clientY - last.y) * (H / rect.height);
+        last = { x: ev.clientX, y: ev.clientY };
+        applyView();
+      });
+
+      window.addEventListener("pointerup", () => {
+        panning = false;
+        svg.classList.remove("dragging");
+      });
+
+      svg.addEventListener("wheel", (ev) => {
+        ev.preventDefault();
+        const rect = svg.getBoundingClientRect();
+        zoom(ev.deltaY < 0 ? 1.12 : 0.89,
+          (ev.clientX - rect.left) * (W / rect.width),
+          (ev.clientY - rect.top) * (H / rect.height));
+      }, { passive: false });
+    }
+
+    /* ---------- Entity file ---------- */
+    function openFile(id) {
+      const node = ALL_NODES.find(n => n.id === id);
+      if (!node) return;
+
+      pickedId = id;
+      paint();
+
+      $("kg-blank").style.display = "none";
+      $("kg-file").style.display = "block";
+
+      const tag = $("kg-type-tag");
+      tag.textContent = (node.type || "entity").replace(/_/g, " ");
+      tag.style.color = TYPE_COLOR[node.type] || "var(--gold)";
+      tag.style.borderColor = TYPE_COLOR[node.type] || "var(--gold)";
+
+      $("kg-label").textContent = node.label;
+      $("kg-id").textContent = node.id + "  ·  " + (node.group || "ungrouped");
+      $("kg-desc").textContent = node.description || TYPE_DESC[node.type] ||
+        "Ontology node in the IP-SAKTI knowledge network.";
+      $("kg-flag").textContent = TYPE_FLAG[node.type] ||
+        "No statutory flag recorded against this node type.";
+
+      const rel = ALL_EDGES.filter(e => e.source === id || e.target === id);
+      const out = rel.filter(e => e.source === id).length;
+      $("kg-deg").textContent = rel.length;
+      $("kg-out").textContent = out;
+      $("kg-in").textContent = rel.length - out;
+
+      const box = $("kg-rel-box"), list = $("kg-rel-list");
+      if (!rel.length) { box.style.display = "none"; return; }
+
+      box.style.display = "block";
+      list.innerHTML = rel.map(e => {
+        const outgoing = e.source === id;
+        const otherId = outgoing ? e.target : e.source;
+        const other = ALL_NODES.find(n => n.id === otherId);
+        const color = other ? (TYPE_COLOR[other.type] || "#ffb020") : "#ffb020";
+        return '<li data-id="' + esc(otherId) + '" style="border-left-color:' + color + '">' +
+          '<span class="verb">' + (outgoing ? "→ " : "← ") + esc(e.relation.replace(/_/g, " ")) + '</span>' +
+          '<span class="target">' + esc(other ? other.label : otherId) + '</span></li>';
+      }).join("");
+
+      list.querySelectorAll("li").forEach(li => {
+        li.addEventListener("click", () => {
+          const tid = li.dataset.id;
+          if (!nodeById.has(tid)) {
+            const t = ALL_NODES.find(n => n.id === tid);
+            if (t && !activeTypes.has(t.type)) {
+              activeTypes.add(t.type);
+              const chip = document.querySelector('.kg-chip[data-type="' + t.type + '"]');
+              if (chip) chip.classList.add("on");
+            }
+            $("kg-search").value = "";
+            query = "";
+            rebuild();
+          }
+          openFile(tid);
+        });
+      });
+    }
+
+    function clearFile() {
+      $("kg-blank").style.display = "block";
+      $("kg-file").style.display = "none";
+      const tag = $("kg-type-tag");
+      tag.textContent = "none selected";
+      tag.style.color = "var(--text-soft)";
+      tag.style.borderColor = "var(--rule-strong)";
+    }
+  })();
+</script>
+{% endblock %}

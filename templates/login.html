@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Log In — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .auth-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .auth-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .form-group label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .form-group input {
+    padding: 11px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14.5px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .form-group input:focus {
+    border-color: var(--primary);
+  }
+
+  .auth-footer-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1 class="auth-title">Log In to Sahayak</h1>
+    <p class="auth-sub">Access your research workspace, saved queries, and compliance reports.</p>
+
+    <form method="POST" action="/login">
+      <div class="form-group">
+        <label>Username or Email</label>
+        <input type="text" name="username" placeholder="Enter your username or email" required>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Log In</button>
+    </form>
+
+    <div class="auth-footer-link">
+      Don't have an account? <a href="/signup">Sign Up</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

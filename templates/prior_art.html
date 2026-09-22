@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% block title %}Prior-Art & TKDL Search Workspace — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .pa-container {
+    max-width: 1080px;
+    margin: 40px auto 80px;
+    padding: 0 24px;
+  }
+
+  .pa-hero {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+
+  .pa-hero h1 {
+    font-size: 30px;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .pa-hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 750px;
+  }
+
+  .pa-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+
+  .filter-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .filter-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .filter-group select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13.5px;
+    outline: none;
+  }
+
+  .filter-group select:focus {
+    border-color: var(--primary);
+  }
+
+  .search-textarea {
+    width: 100%;
+    height: 110px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-family: inherit;
+    font-size: 14.5px;
+    outline: none;
+    resize: vertical;
+    margin-bottom: 18px;
+  }
+
+  .search-textarea:focus {
+    border-color: var(--primary);
+  }
+
+  .disclaimer-banner {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    color: #b45309;
+    font-size: 13.5px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .result-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .result-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+
+  .result-card h3 {
+    font-size: 17px;
+    color: var(--text-main);
+  }
+
+  .score-badge {
+    padding: 4px 10px;
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    .filter-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pa-container">
+  <!-- Hero Section -->
+  <div class="pa-hero">
+    <h1>Prior-Art & Traditional Knowledge Search</h1>
+    <p>Search classical Ayurvedic texts, TKDL references, published patent specifications, and botanical databases to evaluate novelty and prior disclosure.</p>
+  </div>
+
+  <!-- Search Card -->
+  <div class="pa-card">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Jurisdiction Scope</label>
+        <select id="pa-jurisdiction">
+          <option value="India">India (IP India & TKDL)</option>
+          <option value="International">International (WIPO & Global)</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Domain Focus</label>
+        <select id="pa-domain">
+          <option value="All">All Knowledge Domains</option>
+          <option value="Ayurveda">Ayurveda</option>
+          <option value="Unani">Unani</option>
+          <option value="Siddha">Siddha</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Relevance Threshold</label>
+        <select id="pa-threshold">
+          <option value="0.7">High Sensitivity (&ge; 70%)</option>
+          <option value="0.8">Standard (&ge; 80%)</option>
+        </select>
+      </div>
+    </div>
+
+    <label style="display:block; font-weight:600; font-size:14px; margin-bottom:8px;">Invention / Formulation Description *</label>
+    <textarea class="search-textarea" id="pa-description" placeholder="Describe the composition, herbal ingredients, preparation method, or therapeutic application (e.g. Polyherbal extract containing Curcuma longa and Zingiber officinale for anti-inflammatory treatment)..."></textarea>
+
+    <button class="btn btn-primary" id="pa-submit-btn" onclick="executePriorArtSearch()">Search Prior Art & TKDL</button>
+  </div>
+
+  <!-- Results Section -->
+  <div id="pa-results-section" style="display:none;">
+    <div class="disclaimer-banner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+      <div>
+        <strong>Legal Precedent Note:</strong> Similarity scores reflect semantic & statutory overlap. Similarity does not automatically establish unpatentability; professional legal assessment is required.
+      </div>
+    </div>
+
+    <div id="pa-results-list"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  async function executePriorArtSearch() {
+    const desc = document.getElementById('pa-description').value.trim();
+    if (!desc) {
+      alert('Please enter an invention or formulation description.');
+      return;
+    }
+
+    const btn = document.getElementById('pa-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Searching TKDL & Patent Indexes...';
+
+    const sec = document.getElementById('pa-results-section');
+    const list = document.getElementById('pa-results-list');
+    sec.style.display = 'block';
+    list.innerHTML = '<div class="pa-card" style="text-align:center;"><em>Retrieving prior art and traditional knowledge references...</em></div>';
+
+    try {
+      const jur = document.getElementById('pa-jurisdiction').value;
+      const res = await apiFetch('/api/prior-art', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: desc,
+          jurisdiction: jur
+        })
+      });
+
+      if (!res.success) {
+        list.innerHTML = `<div class="pa-card" style="color:#dc2626;">Search failed: ${res.error || 'Unknown error'}</div>`;
+        return;
+      }
+
+      const results = res.results || res.prior_art || [];
+      if (results.length === 0) {
+        list.innerHTML = `<div class="pa-card" style="text-align:center;">No direct prior art matches found exceeding threshold.</div>`;
+        return;
+      }
+
+      list.innerHTML = results.map(item => `
+        <div class="result-card">
+          <div class="result-card-header">
+            <h3>${escapeHtml(item.title || item.source_name || 'Prior-Art Reference')}</h3>
+            <span class="score-badge">Similarity Match: ${Math.round((item.score || item.similarity || 0.85) * 100)}%</span>
+          </div>
+
+          <p style="font-size:14px; color:var(--text-main); margin-bottom:8px;">${escapeHtml(item.summary || item.text_snippet || 'Classical formulation record retrieved from indexed database.')}</p>
+
+          <div style="font-size:12.5px; color:var(--text-muted); display:flex; gap:16px; flex-wrap:wrap;">
+            <span><strong>Source Authority:</strong> ${escapeHtml(item.authority || 'TKDL / IP India')}</span>
+            <span><strong>Jurisdiction:</strong> ${escapeHtml(item.jurisdiction || 'India')}</span>
+            ${item.url ? `<a href="${item.url}" target="_blank" style="margin-left:auto;">View Source Gazette &rarr;</a>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+    } catch(e) {
+      list.innerHTML = `<div class="pa-card" style="color:#dc2626;">Network error while conducting prior-art search.</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Search Prior Art & TKDL';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+{% endblock %}

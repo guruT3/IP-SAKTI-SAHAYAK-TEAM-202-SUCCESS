@@ -1,0 +1,1184 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — IP-SAKTI SAHAYAK (SIH 2026 PS26045){% endblock %}
+
+{% block extra_css %}
+<style>
+  /*
+   * IP-SAKTI SAHAYAK — Dashboard styles
+   * Uses the gazette/dossier tokens defined in base.html's :root
+   * (--ink, --gold, --teal, --paper, --rule, --font-mono, --radius-*).
+   * Text sitting on a gold fill uses the fixed --on-gold token.
+   *
+   * Design intent: this reads as a case file, not a SaaS panel. The hero
+   * carries an official-seal motif (a verification stamp), stats are set
+   * as a ledger rather than a card grid, and launchpad entries carry
+   * exhibit references (Exhibit A/B/C…) the way a legal dossier binds
+   * attachments — never a generic 01/02/03 step sequence.
+   */
+
+  .dashboard-container {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 48px 28px 88px;
+    display: flex;
+    flex-direction: column;
+    gap: 52px;
+  }
+
+  /* ---------------- Dashboard hero ---------------- */
+  .dashboard-hero {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-m);
+    padding: 44px 48px;
+  }
+
+  .dashboard-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 92% -10%, rgba(198, 138, 46, 0.14), transparent 45%),
+      radial-gradient(circle at -5% 115%, rgba(46, 110, 99, 0.13), transparent 45%);
+    pointer-events: none;
+  }
+
+  .dashboard-hero::after {
+    /* faint letterpress rule under the seal, reinforces the "official" feel */
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 220px;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--rule-strong) 30%, var(--rule-strong) 70%, transparent);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  @media (max-width: 780px) {
+    .dashboard-hero::after {
+      display: none;
+    }
+  }
+
+  .hero-text-col,
+  .hero-action-col {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-text-col {
+    max-width: 620px;
+  }
+
+  .case-ref {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 0 10px;
+    border-bottom: 1px solid var(--rule-strong);
+    margin-bottom: 18px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-soft);
+    letter-spacing: 0.01em;
+  }
+
+  .case-ref strong {
+    color: var(--gold-deep);
+    font-weight: 700;
+  }
+
+  .hero-text-col h1 {
+    font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+    line-height: 1.24;
+    color: var(--ink);
+    margin: 0 0 16px;
+    font-weight: 600;
+    max-width: 20ch;
+  }
+
+  .hero-text-col p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-soft);
+    max-width: 54ch;
+    margin: 0;
+  }
+
+  .hero-action-col {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  /* ---------------- Auth row (Login / Sign Up) ---------------- */
+  .hero-auth-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .auth-status-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.03em;
+    color: var(--text-soft);
+    padding-right: 4px;
+  }
+
+  .auth-status-tag::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-tint);
+  }
+
+  /* The seal: a stamped verification mark, the one bold gesture on the page. */
+  .hero-seal {
+    width: 92px;
+    height: 92px;
+    flex-shrink: 0;
+    opacity: 0.9;
+    transform: rotate(-6deg);
+    animation: seal-settle 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-seal {
+      animation: none;
+    }
+  }
+
+  @keyframes seal-settle {
+    from {
+      opacity: 0;
+      transform: rotate(4deg) scale(1.35);
+    }
+
+    to {
+      opacity: 0.9;
+      transform: rotate(-6deg) scale(1);
+    }
+  }
+
+  .hero-seal svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ---------------- Buttons ---------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    border-radius: var(--radius-s);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  /* --on-gold, not --ink-strong: --ink-strong flips to near-white in
+     dark mode and disappears against the gold fill. */
+  .btn-primary {
+    background: var(--gold);
+    color: var(--on-gold);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .btn-primary:hover {
+    background: var(--gold-deep);
+    color: var(--on-gold);
+  }
+
+  /* Outline button for secondary actions — Login sits here so the
+     primary gold is reserved for the flagship CTA. */
+  .btn-outline {
+    background: transparent;
+    color: var(--teal);
+    border-color: var(--rule-strong);
+  }
+
+  .btn-outline:hover {
+    background: var(--teal-tint);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-soft);
+    border-color: transparent;
+    padding: 9px 14px;
+  }
+
+  .btn-ghost:hover {
+    color: var(--ink);
+    background: var(--paper);
+  }
+
+  .btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .btn-lg {
+    padding: 12px 22px;
+    font-size: 14.5px;
+  }
+
+  /* ---------------- Corpus ledger (replaces the stat card grid) ---------------- */
+  .ledger {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+  }
+
+  .ledger-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .ledger-head h2 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .ledger-head span {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-soft);
+  }
+
+  .ledger-rows {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .ledger-row {
+    padding: 20px 24px;
+    border-right: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: background 0.2s ease;
+  }
+
+  .ledger-row:hover {
+    background: var(--paper);
+  }
+
+  .ledger-row:last-child {
+    border-right: none;
+  }
+
+  .ledger-row.is-flagged {
+    background: var(--teal-tint);
+  }
+
+  .ledger-row.is-flagged:hover {
+    background: var(--teal-tint);
+  }
+
+  .ledger-value {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .ledger-row.is-flagged .ledger-value {
+    color: var(--teal);
+  }
+
+  .ledger-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .ledger-sub {
+    font-size: 11px;
+    color: var(--text-soft);
+  }
+
+  @media (max-width: 900px) {
+    .ledger-rows {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ledger-row {
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .ledger-row:nth-child(2n) {
+      border-right: none;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .ledger-rows {
+      grid-template-columns: 1fr;
+    }
+
+    .ledger-row {
+      border-right: none;
+    }
+  }
+
+  /* ---------------- Section header row ---------------- */
+  .section-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .section-title-row h2,
+  .section-title-row h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .muted-tag {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-soft);
+  }
+
+  /* ---------------- Badges ---------------- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-s);
+    font-size: 11.5px;
+    font-weight: 700;
+    border: 1px solid var(--rule-strong);
+    color: var(--text-soft);
+  }
+
+  .badge-success {
+    background: var(--teal-tint);
+    color: var(--teal);
+    border-color: transparent;
+  }
+
+  /* ---------------- Launchpad ---------------- */
+  .launchpad-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .launch-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-m);
+    padding: 20px 20px 18px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .launch-card:hover {
+    border-color: var(--rule-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.35);
+  }
+
+  .launch-card:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  .launch-card.flagship-launch {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    background: linear-gradient(135deg, var(--paper-raised), var(--gold-tint));
+    border-color: var(--gold);
+    padding: 26px 30px;
+  }
+
+  .exhibit-ref {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-soft);
+  }
+
+  .flagship-launch .exhibit-ref {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    color: var(--gold-deep);
+    font-weight: 700;
+  }
+
+  .launch-info h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .flagship-launch .launch-info h3 {
+    font-size: 17px;
+  }
+
+  .launch-info p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-soft);
+    margin: 0 0 10px;
+    max-width: 48ch;
+  }
+
+  .card-link {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--gold-deep);
+  }
+
+  .launch-card:not(.flagship-launch) .card-link {
+    color: var(--teal);
+  }
+
+  @media (max-width: 640px) {
+    .launch-card.flagship-launch {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  /* ---------------- System health / verification manifest ---------------- */
+  .health-grid {
+    display: flex;
+    flex-direction: column;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+  }
+
+  .health-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .health-card:last-child {
+    border-bottom: none;
+  }
+
+  .h-mark {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 18px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .health-card.healthy .h-mark {
+    color: var(--teal);
+  }
+
+  .health-card.warn .h-mark {
+    color: var(--gold-deep);
+  }
+
+  .h-text {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .h-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .h-status {
+    font-size: 11.5px;
+    color: var(--text-soft);
+  }
+
+  .health-loading {
+    color: var(--text-soft);
+    font-size: 13px;
+    padding: 14px 20px;
+    display: block;
+  }
+
+  /* ---------------- Responsive ---------------- */
+  @media (max-width: 780px) {
+    .dashboard-hero {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 32px 28px;
+    }
+
+    .hero-action-col {
+      width: 100%;
+      align-items: flex-start;
+    }
+
+    .hero-auth-row {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .hero-action-col .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .hero-auth-row .btn {
+      width: auto;
+      flex: 1;
+    }
+
+    .hero-seal {
+      display: none;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .dashboard-container {
+      padding: 36px 20px 64px;
+      gap: 40px;
+    }
+
+    .dashboard-hero {
+      padding: 28px 22px;
+    }
+
+    .hero-auth-row {
+      flex-wrap: wrap;
+    }
+  }
+
+  /* ---------------- Personal Profile Card ---------------- */
+  .profile-section {
+    scroll-margin-top: 100px;
+  }
+
+  .profile-card {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 28px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-m);
+    padding: 32px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--gold);
+    box-shadow: 0 0 12px var(--gold);
+  }
+
+  .profile-card-user {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-right: 28px;
+    border-right: 1px solid var(--rule);
+  }
+
+  .profile-avatar-large {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #ff8c00);
+    color: var(--on-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: var(--glow-gold);
+    flex-shrink: 0;
+  }
+
+  .profile-user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .profile-user-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .profile-user-email {
+    font-size: 13.5px;
+    color: var(--text-soft);
+    margin: 0 0 8px;
+    word-break: break-all;
+  }
+
+  .profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .profile-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .profile-tag.gold {
+    background: var(--gold-tint);
+    color: var(--gold);
+    border: 1px solid rgba(255, 176, 32, 0.4);
+  }
+
+  .profile-tag.teal {
+    background: var(--teal-tint);
+    color: var(--teal);
+    border: 1px solid rgba(53, 224, 192, 0.4);
+  }
+
+  .profile-card-referral {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .referral-box-header h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 4px;
+  }
+
+  .referral-box-header p {
+    font-size: 12.5px;
+    color: var(--text-soft);
+    margin: 0;
+  }
+
+  .referral-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .referral-input-group input {
+    flex: 1;
+    padding: 10px 14px;
+    background: var(--paper);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-s);
+    color: var(--gold-deep);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+  }
+
+  .referral-input-group input:focus {
+    border-color: var(--gold);
+    box-shadow: var(--glow-gold-soft);
+  }
+
+  .referral-code-sub {
+    font-size: 12px;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+  }
+
+  .referral-code-sub strong {
+    color: var(--teal);
+  }
+
+  /* Guest Banner inside Profile section */
+  .profile-guest-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background: var(--paper-raised);
+    border: 1px dashed var(--rule-strong);
+    border-radius: var(--radius-m);
+    padding: 28px 36px;
+  }
+
+  .guest-card-content h3 {
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .guest-card-content p {
+    font-size: 13.5px;
+    color: var(--text-soft);
+    margin: 0;
+  }
+
+  .guest-card-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 840px) {
+    .profile-card {
+      grid-template-columns: 1fr;
+    }
+
+    .profile-card-user {
+      padding-right: 0;
+      border-right: none;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 24px;
+    }
+
+    .profile-guest-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Dashboard Hero -->
+  <div class="dashboard-hero">
+    <div class="hero-text-col">
+      <span class="case-ref">File No. <strong>PS26045/2026</strong> · Smart India Hackathon</span>
+      <h1>IP-SAKTI Sahayak Intelligence Center</h1>
+      <p>
+        AI-powered intellectual property, Ayurveda and traditional knowledge intelligence platform. Grounded
+        strictly in verified statutory acts, TKDL classical texts, and National Biodiversity Authority mandates.
+      </p>
+    </div>
+    <div class="hero-action-col">
+      <!-- Access row: Login / Sign Up. Shown when there is no session cookie set by base.html's auth check. -->
+      <div class="hero-auth-row" id="hero-auth-row">
+        <span class="auth-status-tag">Guest Access</span>
+        <a href="/login" class="btn btn-outline btn-sm">Log In</a>
+        <a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>
+      </div>
+
+      <div class="hero-seal" aria-hidden="true">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-dasharray="2 3" />
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--teal)" stroke-width="1.5" />
+          <path d="M50 16 A34 34 0 0 1 50 84" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.6" />
+          <text x="50" y="46" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--teal)"
+            font-weight="700">GROUNDED</text>
+          <text x="50" y="58" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--teal)"
+            font-weight="700">VERIFIED</text>
+        </svg>
+      </div>
+      <a href="/analyze-innovation" class="btn btn-primary btn-lg">
+        Analyze Innovation
+      </a>
+    </div>
+  </div>
+
+  <!-- Personal Profile & Referral Section -->
+  <div class="page-section profile-section" id="personal-profile">
+    <div class="section-title-row">
+      <h2>Personal Profile &amp; Referral Desk</h2>
+      {% if current_user %}
+      <span class="badge badge-success">✓ Active Session</span>
+      {% else %}
+      <span class="muted-tag">Guest Mode</span>
+      {% endif %}
+    </div>
+
+    {% if current_user %}
+    <div class="profile-card">
+      <div class="profile-card-user">
+        <div class="profile-avatar-large">
+          {{ current_user.username[0]|upper }}
+        </div>
+        <div class="profile-user-details">
+          <h3 class="profile-user-name">{{ current_user.username }}</h3>
+          <p class="profile-user-email">{{ current_user.email }}</p>
+          <div class="profile-tags">
+            <span class="profile-tag gold">Verified Researcher</span>
+            <span class="profile-tag teal">IP-SAKTI Member</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-card-referral">
+        <div class="referral-box-header">
+          <h4>🔗 Your Exclusive Referral Link</h4>
+          <p>Invite peers to IP-SAKTI Sahayak &amp; unlock priority research credits.</p>
+        </div>
+        <div class="referral-input-group">
+          <input type="text" readonly id="dash-referral-input"
+            value="{{ request.host_url }}signup?ref={{ current_user.referral_code }}">
+          <button type="button" class="btn btn-primary btn-sm" id="copy-dash-ref-btn" onclick="copyDashReferralLink()">
+            <span>📋</span> Copy Link
+          </button>
+        </div>
+        <div class="referral-code-sub">
+          Referral Code: <strong>{{ current_user.referral_code }}</strong>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="profile-guest-card">
+      <div class="guest-card-content">
+        <h3>Unlock Your Personal Research Profile</h3>
+        <p>Log in or sign up to access your personal profile, generate referral links, and track saved research dossiers
+          across sessions.</p>
+      </div>
+      <div class="guest-card-actions">
+        <a href="/login" class="btn btn-outline btn-sm">Log In</a>
+        <a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Live Corpus Statistics, set as a ledger rather than a card grid -->
+  <div class="ledger">
+    <div class="ledger-head">
+      <h2>Corpus Register</h2>
+      <span>as verified this session</span>
+    </div>
+    <div class="ledger-rows" id="stat-grid">
+      <div class="ledger-row">
+        <span class="ledger-value" id="stat-sources">–</span>
+        <span class="ledger-label">Authoritative Sources</span>
+        <span class="ledger-sub">IP India, TKDL, NBA, WIPO</span>
+      </div>
+      <div class="ledger-row">
+        <span class="ledger-value" id="stat-documents">–</span>
+        <span class="ledger-label">Statutory Provisions</span>
+        <span class="ledger-sub">Sections, Rules &amp; Precedents</span>
+      </div>
+      <div class="ledger-row">
+        <span class="ledger-value" id="stat-vectors">–</span>
+        <span class="ledger-label">Indexed Embeddings</span>
+        <span class="ledger-sub">BAAI/bge-m3 + BM25 Hybrid</span>
+      </div>
+      <div class="ledger-row">
+        <span class="ledger-value">4</span>
+        <span class="ledger-label">Regulatory Amendments</span>
+        <span class="ledger-sub">BDA 2023, Patent Rules 2024</span>
+      </div>
+      <div class="ledger-row is-flagged">
+        <span class="ledger-value">100%</span>
+        <span class="ledger-label">Red-Team Trap Defense</span>
+        <span class="ledger-sub">Safe Abstention Gate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Action Navigation Launchpad -->
+  <div class="page-section launchpad-section">
+    <div class="section-title-row">
+      <h2>Platform Intelligence Modules</h2>
+      <span class="muted-tag">SIH 2026 Core Features</span>
+    </div>
+
+    <div class="launchpad-grid">
+      <a href="/analyze-innovation" class="launch-card flagship-launch">
+        <span class="exhibit-ref">Exhibit A — Flagship</span>
+        <div class="launch-info">
+          <h3>Analyze My Innovation</h3>
+          <p>Flagship intake: botanical entity extraction, 5-axis risk radar, Section 3(d)/3(p) analysis, and an
+            instant PDF dossier.</p>
+          <span class="card-link">Launch analyzer →</span>
+        </div>
+      </a>
+
+      <a href="/chat" class="launch-card">
+        <span class="exhibit-ref">Exhibit B</span>
+        <div class="launch-info">
+          <h3>Ask IP-SAKTI (RAG &amp; Research)</h3>
+          <p>Quick hybrid RAG and 5-track agentic deep research, with claim-level "why did AI say this?" evidence
+            traceability.</p>
+          <span class="card-link">Start inquiry →</span>
+        </div>
+      </a>
+
+      <a href="/prior-art" class="launch-card">
+        <span class="exhibit-ref">Exhibit C</span>
+        <div class="launch-info">
+          <h3>Prior-Art &amp; TKDL Explorer</h3>
+          <p>Retrieve classical Ayurvedic texts and patent prior-art references with concept differentiation
+            analysis.</p>
+          <span class="card-link">Explore prior art →</span>
+        </div>
+      </a>
+
+      <a href="/comparative" class="launch-card">
+        <span class="exhibit-ref">Exhibit D</span>
+        <div class="launch-info">
+          <h3>India vs. International Matrix</h3>
+          <p>Side-by-side comparative matrices across India, USPTO, EPO, and WIPO on patentability, ABS, and
+            treaties.</p>
+          <span class="card-link">View matrix →</span>
+        </div>
+      </a>
+
+      <a href="/regulations" class="launch-card">
+        <span class="exhibit-ref">Exhibit E</span>
+        <div class="launch-info">
+          <h3>Regulation Time Machine</h3>
+          <p>Inspect statutory amendments (BDA 2023, Patents 2024) with an interactive, side-by-side "what
+            changed?" diff.</p>
+          <span class="card-link">Inspect diff →</span>
+        </div>
+      </a>
+
+      <a href="/knowledge-graph" class="launch-card">
+        <span class="exhibit-ref">Exhibit F</span>
+        <div class="launch-info">
+          <h3>IP &amp; TK Knowledge Graph</h3>
+          <p>Explore multi-hop relationships connecting botanicals, phytochemicals, samhitas, statutes, and
+            authorities.</p>
+          <span class="card-link">Explore graph →</span>
+        </div>
+      </a>
+
+      <a href="/benchmark" class="launch-card">
+        <span class="exhibit-ref">Exhibit G</span>
+        <div class="launch-info">
+          <h3>Evaluation Benchmark Suite</h3>
+          <p>Live judge evaluation dashboard measuring Recall@K, groundedness %, abstention accuracy, and
+            latency.</p>
+          <span class="card-link">Run benchmark →</span>
+        </div>
+      </a>
+
+      <a href="/documents" class="launch-card">
+        <span class="exhibit-ref">Exhibit H</span>
+        <div class="launch-info">
+          <h3>Document Intelligence</h3>
+          <p>Upload legal or IP agreements and specifications to extract sections, authorities, dates, and
+            obligations.</p>
+          <span class="card-link">Upload document →</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- System Health Status Panel, set as a verification manifest -->
+  <div class="page-section health-section">
+    <div class="section-title-row">
+      <h3>System Health &amp; Subsystem Verification</h3>
+      <span class="badge badge-success" id="health-overall-badge">All Systems Healthy</span>
+    </div>
+    <div id="health-panel" class="health-grid">
+      <span class="health-loading">Checking system health…</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // IP-SAKTI SAHAYAK — Dashboard: live corpus stats + system health.
+  // Uses apiFetch()/escapeHtml() from base.html's global script.
+
+  // ---- Auth-aware hero row ----
+  // If base.html exposes the current user (e.g. window.CURRENT_USER, set from
+  // the Flask session in base.html), swap the Login/Sign Up pair for a
+  // "Signed in as ..." state instead of showing guest actions to a logged-in user.
+  (function updateAuthRow() {
+    const row = document.getElementById('hero-auth-row');
+    if (!row) return;
+    const user = (typeof window !== 'undefined' && window.CURRENT_USER) || null;
+    if (user) {
+      const label = escapeHtml(user.name || user.email || 'Account');
+      row.innerHTML = `
+        <span class="auth-status-tag">Signed in</span>
+        <span class="badge">${label}</span>
+        <a href="/logout" class="btn btn-ghost btn-sm">Log Out</a>
+      `;
+    }
+  })();
+
+  // ---- Count-up animation for the ledger values ----
+  function animateStat(el, target, opts = {}) {
+    if (!el) return;
+    const duration = opts.duration || 900;
+    const suffix = opts.suffix || '';
+    const start = performance.now();
+    function frame(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = Math.round(target * eased);
+      el.textContent = value.toLocaleString('en-IN') + suffix;
+      if (progress < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  (async function loadStats() {
+    const sourcesEl = document.getElementById('stat-sources');
+    const documentsEl = document.getElementById('stat-documents');
+    const vectorsEl = document.getElementById('stat-vectors');
+    if (!sourcesEl && !documentsEl && !vectorsEl) return;
+
+    try {
+      const data = await apiFetch('/api/dashboard/stats');
+      if (data && data.success !== false) {
+        if (sourcesEl) animateStat(sourcesEl, data.sources ?? 0);
+        if (documentsEl) animateStat(documentsEl, data.provisions ?? 0);
+        if (vectorsEl) animateStat(vectorsEl, data.vectors ?? 0, { suffix: '+' });
+        return;
+      }
+      throw new Error(data && data.error);
+    } catch (e) {
+      // Backend not reachable yet — leave the dashes rather than show a false number.
+      [sourcesEl, documentsEl, vectorsEl].forEach((el) => { if (el) el.textContent = '—'; });
+    }
+  })();
+
+  // ---- System health panel ----
+  (async function loadHealth() {
+    const panel = document.getElementById('health-panel');
+    const overallBadge = document.getElementById('health-overall-badge');
+    if (!panel) return;
+
+    try {
+      const data = await apiFetch('/api/health');
+      if (!data || data.success === false || !Array.isArray(data.subsystems)) {
+        throw new Error((data && data.error) || 'No health data.');
+      }
+
+      panel.innerHTML = data.subsystems
+        .map((s) => {
+          const healthy = s.status === 'healthy' || s.healthy === true;
+          const stateClass = healthy ? 'healthy' : 'warn';
+          const mark = healthy ? '✓' : '!';
+          return `
+            <div class="health-card ${stateClass}">
+              <span class="h-mark">${mark}</span>
+              <div class="h-text">
+                <span class="h-name">${escapeHtml(s.name || 'Subsystem')}</span>
+                <span class="h-status">${escapeHtml(s.detail || (healthy ? 'Operating normally' : 'Needs attention'))}</span>
+              </div>
+            </div>`;
+        })
+        .join('');
+
+      const allHealthy = data.subsystems.every((s) => s.status === 'healthy' || s.healthy === true);
+      if (overallBadge) {
+        overallBadge.textContent = allHealthy ? 'All Systems Healthy' : 'Degraded — see below';
+        overallBadge.classList.toggle('badge-success', allHealthy);
+      }
+    } catch (e) {
+      panel.innerHTML = '<span class="health-loading">System health service unavailable.</span>';
+      if (overallBadge) overallBadge.textContent = 'Unknown';
+    }
+  })();
+
+  // ---- Copy Referral Link Helper ----
+  function copyDashReferralLink() {
+    const input = document.getElementById('dash-referral-input');
+    if (!input) return;
+    input.select();
+    input.setSelectionRange(0, 99999);
+
+    function showCopyFeedback() {
+      const btn = document.getElementById('copy-dash-ref-btn');
+      if (!btn) return;
+      const oldHtml = btn.innerHTML;
+      btn.innerHTML = '<span>✓</span> Copied!';
+      btn.style.background = 'var(--teal)';
+      btn.style.borderColor = 'var(--teal)';
+      btn.style.color = '#0a0e1a';
+      setTimeout(() => {
+        btn.innerHTML = oldHtml;
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }, 2000);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(input.value).then(showCopyFeedback).catch(() => {
+        document.execCommand('copy');
+        showCopyFeedback();
+      });
+    } else {
+      document.execCommand('copy');
+      showCopyFeedback();
+    }
+  }
+</script>
+{% endblock %}

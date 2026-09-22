@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% block title %}ABS & Biodiversity Compliance Guidance — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .comp-container {
+    max-width: 1080px;
+    margin: 40px auto 80px;
+    padding: 0 24px;
+  }
+
+  .comp-hero {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+
+  .comp-hero h1 {
+    font-size: 30px;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .comp-hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 780px;
+  }
+
+  .comp-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--primary);
+  }
+
+  .disclaimer-banner {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    color: #b45309;
+    font-size: 13.5px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .status-found { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-border); }
+  .status-consideration { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+  .status-verify { background: var(--accent-green-light); color: var(--accent-green); border: 1px solid var(--accent-green-border); }
+
+  .checklist-item {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .checklist-item h4 {
+    font-size: 16px;
+    color: var(--text-main);
+    margin-bottom: 6px;
+  }
+
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="comp-container">
+  <!-- Hero Section -->
+  <div class="comp-hero">
+    <h1>ABS & Biodiversity Compliance Assessment</h1>
+    <p>Determine Access & Benefit Sharing (ABS) obligations, Form I/II/III approval requirements, and statutory compliance under the Biological Diversity Act 2002 & 2023 Amendment.</p>
+  </div>
+
+  <!-- Form Card -->
+  <div class="comp-card">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Biological Resource / Ingredient Name *</label>
+        <input type="text" id="comp-resource" placeholder="e.g. Nardostachys jatamansi / Withania somnifera" required>
+      </div>
+
+      <div class="form-group">
+        <label>Traditional Knowledge Association</label>
+        <select id="comp-tk">
+          <option value="Yes">Yes — Derived from traditional Ayurvedic usage</option>
+          <option value="No">No — Synthetic or non-traditional extract</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Intended Purpose</label>
+        <select id="comp-purpose">
+          <option value="Commercial Commercialization">Commercial Manufacturing & Sale</option>
+          <option value="Research & Development">Academic / R&D Assessment</option>
+          <option value="Export / International Transfer">Exporting Biological Material</option>
+          <option value="Patent Application Filing">Filing Patent Application</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Entity / Jurisdiction Type</label>
+        <select id="comp-entity">
+          <option value="Indian National / Indian Entity">Indian National / Indian Registered Entity</option>
+          <option value="Foreign National / NRI / Foreign Entity">Foreign National / NRI / Foreign Entity</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>Detailed Activity Description *</label>
+      <textarea id="comp-description" rows="4" placeholder="Describe the biological resource sourcing, commercialization plan, and target markets..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="comp-submit-btn" onclick="executeComplianceCheck()">Check ABS & Statutory Obligations</button>
+  </div>
+
+  <!-- Output Results Section -->
+  <div id="comp-results-section" style="display:none;">
+    <div class="disclaimer-banner">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+      <div>
+        <strong>Compliance Notice:</strong> ABS assessment identifies <em>potential considerations and required NBA/SBB approval filings</em>. Actual approval requires official National Biodiversity Authority submission.
+      </div>
+    </div>
+
+    <div id="comp-results-body"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  async function executeComplianceCheck() {
+    const desc = document.getElementById('comp-description').value.trim();
+    if (!desc) {
+      alert('Please provide an activity description.');
+      return;
+    }
+
+    const btn = document.getElementById('comp-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Checking Biological Diversity Act Rules...';
+
+    const sec = document.getElementById('comp-results-section');
+    const body = document.getElementById('comp-results-body');
+    sec.style.display = 'block';
+    body.innerHTML = '<div class="comp-card" style="text-align:center;"><em>Evaluating Biological Diversity Act provisions & NBA requirements...</em></div>';
+
+    try {
+      const res = await apiFetch('/api/regulatory/compliance', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: desc,
+          country: 'India',
+          domain: 'Ayurveda'
+        })
+      });
+
+      if (!res.success && res.potentially_relevant_areas === undefined) {
+        // Fallback to /api/compliance if needed
+        const res2 = await apiFetch('/api/compliance', {
+          method: 'POST',
+          body: JSON.stringify({ description: desc })
+        });
+        renderComplianceOutput(res2, body);
+        return;
+      }
+
+      renderComplianceOutput(res, body);
+
+    } catch(e) {
+      body.innerHTML = '<div class="comp-card" style="color:#dc2626;">Network error during compliance check.</div>';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Check ABS & Statutory Obligations';
+    }
+  }
+
+  function renderComplianceOutput(data, container) {
+    const items = data.checklist || data.potentially_relevant_areas || [];
+    if (items.length === 0) {
+      container.innerHTML = '<div class="comp-card">No specific ABS restrictions triggered for this input. Verify with SBB.</div>';
+      return;
+    }
+
+    let html = `
+      <div class="comp-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="font-size:20px; color:var(--text-main);">Applicable Statutory Obligations</h3>
+          <span class="status-badge status-consideration">Needs NBA / SBB Verification</span>
+        </div>
+    `;
+
+    items.forEach(item => {
+      html += `
+        <div class="checklist-item">
+          <h4>${escapeHtml(item.area || item.requirement || 'Statutory Requirement')}</h4>
+          <p style="font-size:14px; color:var(--text-muted); margin-bottom:8px;">${escapeHtml(item.notes || item.description || '')}</p>
+          <div style="font-size:12.5px; color:var(--text-main); font-weight:600;">
+            Competent Authority: ${escapeHtml(item.relevant_authority || item.authority || 'National Biodiversity Authority (NBA)')}
+          </div>
+        </div>
+      `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+{% endblock %}

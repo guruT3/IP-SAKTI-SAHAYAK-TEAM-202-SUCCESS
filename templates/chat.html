@@ -1,0 +1,903 @@
+{% extends "base.html" %}
+{% block title %}AI Research Assistant — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .workspace-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    max-width: 1600px;
+    margin: 0 auto;
+    min-height: calc(100vh - 70px);
+    background: var(--bg-body);
+  }
+
+  /* Left Sidebar */
+  .sidebar-left {
+    background: #ffffff;
+    border-right: 1px solid var(--border-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+  }
+
+  .sidebar-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .prompt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .prompt-btn {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.4;
+  }
+
+  .prompt-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-border);
+    color: var(--primary);
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .history-item {
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .history-item:hover {
+    background: var(--bg-subtle);
+    color: var(--text-main);
+  }
+
+  /* Center Workspace */
+  .workspace-main {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-body);
+    border-right: 1px solid var(--border-color);
+  }
+
+  .workspace-header {
+    padding: 16px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .mode-switch {
+    display: flex;
+    background: var(--bg-subtle);
+    padding: 3px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+  }
+
+  .mode-opt {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+
+  .mode-opt.active {
+    background: #ffffff;
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .messages-container {
+    flex: 1;
+    padding: 28px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .empty-workspace {
+    text-align: center;
+    max-width: 500px;
+    margin: auto;
+    padding: 40px 20px;
+  }
+
+  .empty-icon-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .empty-icon-wrap svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .msg-user {
+    align-self: flex-end;
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+    color: var(--primary);
+    padding: 14px 20px;
+    border-radius: 16px 16px 4px 16px;
+    font-size: 14.5px;
+    font-weight: 600;
+    max-width: 80%;
+  }
+
+  .msg-assistant {
+    align-self: flex-start;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary);
+    border-radius: 4px 16px 16px 16px;
+    padding: 24px;
+    width: 100%;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .answer-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+  }
+
+  .confidence-pill {
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .confidence-pill.high { background: var(--accent-green-light); color: var(--accent-green); border: 1px solid var(--accent-green-border); }
+  .confidence-pill.medium { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+  .confidence-pill.low { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+  .answer-text {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text-main);
+    white-space: pre-wrap;
+  }
+
+  .citations-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .citation-card-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .citation-card-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-border);
+    color: var(--primary);
+  }
+
+  .abstain-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    color: #b45309;
+    font-size: 14px;
+  }
+
+  .answer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+  }
+
+  /* Input Form */
+  .input-panel {
+    padding: 20px 24px;
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+  }
+
+  .input-panel textarea {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-family: inherit;
+    font-size: 14.5px;
+    resize: none;
+    outline: none;
+    height: 52px;
+    transition: border-color 0.15s ease;
+  }
+
+  .input-panel textarea:focus {
+    border-color: var(--primary);
+  }
+
+  /* Voice Bot Button & Animations */
+  .voice-bot-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .voice-bot-btn.listening {
+    background: #fee2e2 !important;
+    border-color: #ef4444 !important;
+    color: #b91c1c !important;
+    animation: pulse-ring 1.4s infinite;
+  }
+
+  .voice-bot-btn.speaking {
+    background: #e0f2fe !important;
+    border-color: #0284c7 !important;
+    color: #0369a1 !important;
+    animation: pulse-speak 1.4s infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+
+  @keyframes pulse-speak {
+    0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+  }
+
+  /* Right Sidebar */
+  .sidebar-right {
+    background: #ffffff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+
+  .source-card-mini {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  .source-card-mini strong {
+    display: block;
+    color: var(--text-main);
+    margin-bottom: 4px;
+  }
+
+  .source-card-mini span {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  @media (max-width: 1366px) {
+    .workspace-layout {
+      grid-template-columns: 230px 1fr 260px;
+    }
+    .sidebar-left, .sidebar-right {
+      padding: 16px;
+    }
+    .messages-container {
+      padding: 20px;
+    }
+    .input-panel {
+      padding: 16px 20px;
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .workspace-layout {
+      grid-template-columns: 230px 1fr;
+    }
+    .sidebar-right {
+      display: none;
+    }
+  }
+
+  @media (max-width: 880px) {
+    .workspace-layout {
+      grid-template-columns: 1fr;
+    }
+    .sidebar-left, .sidebar-right {
+      display: none;
+    }
+    .input-panel {
+      flex-direction: column;
+    }
+    .input-panel textarea {
+      height: 70px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="workspace-layout">
+  <!-- Left Sidebar -->
+  <aside class="sidebar-left">
+    <button class="btn btn-primary btn-block" onclick="startNewQuery()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      New Research Query
+    </button>
+
+    <div>
+      <span class="sidebar-title">Example Research Queries</span>
+      <div class="prompt-list">
+        <button class="prompt-btn" onclick="usePrompt('Can my Ayurvedic formulation be patented under Section 3(p) of the Patents Act?')">
+          Can my formulation be patented under Section 3(p)?
+        </button>
+        <button class="prompt-btn" onclick="usePrompt('What regulatory permissions are required under Rule 158B for Ayurvedic proprietary medicine?')">
+          What permissions apply to Ayurvedic proprietary drug licensing?
+        </button>
+        <button class="prompt-btn" onclick="usePrompt('What Access & Benefit Sharing (ABS) obligations apply under the Biological Diversity Act?')">
+          What ABS requirements apply to biological resources?
+        </button>
+        <button class="prompt-btn" onclick="usePrompt('How is polyherbal formulation novelty evaluated against TKDL references?')">
+          How is polyherbal novelty evaluated against TKDL?
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <span class="sidebar-title">Recent Queries</span>
+      <div class="history-list" id="history-list">
+        <div class="history-item" style="color:var(--text-subtle);">No previous queries in session</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Research Workspace -->
+  <main class="workspace-main">
+    <div class="workspace-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <h2 style="font-size:18px; color:var(--text-main);">AI Research Workspace</h2>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="mode-switch">
+          <button class="mode-opt active" id="mode-quick" onclick="setMode('quick')">Quick Mode</button>
+          <button class="mode-opt" id="mode-deep" onclick="setMode('deep')">Deep Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="messages-container" id="messages-container">
+      <div class="empty-workspace" id="empty-state">
+        <div class="empty-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <h3>Ask Anything About Ayurvedic IP & Regulations</h3>
+        <p style="margin-top:8px;">Submissions are answered using statutory RAG over IP India gazettes, Drugs & Cosmetics Rules, FSSAI regulations, and TKDL databases.</p>
+      </div>
+    </div>
+
+    <div class="input-panel">
+      <textarea id="query-input" placeholder="Ask anything about Ayurvedic patents, trademarks, regulatory licensing, or ABS compliance..." onkeydown="handleKeyDown(event)"></textarea>
+      <button class="btn btn-primary" id="submit-btn" onclick="submitQuery()">
+        Ask Sahayak
+      </button>
+      <button class="btn btn-secondary voice-bot-btn" id="chat-voice-btn" type="button" onclick="toggleChatVoiceBot()" title="Voice Bot (Speech-to-Text & Spoken Answer)">
+        <span class="mic-icon" id="chat-voice-icon">🎙️</span>
+        <span id="chat-voice-text">Voice Bot</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- Right Evidence Sidebar -->
+  <aside class="sidebar-right">
+    <span class="sidebar-title">Evidence & Citations</span>
+    <div id="live-evidence-list">
+      <div style="font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;">
+        Retrieved sources and evidence cards for your query will appear here.
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let currentMode = 'quick';
+  let activeConversationId = null;
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('mode-quick').classList.toggle('active', mode === 'quick');
+    document.getElementById('mode-deep').classList.toggle('active', mode === 'deep');
+  }
+
+  function usePrompt(text) {
+    const input = document.getElementById('query-input');
+    if (input) {
+      input.value = text;
+      submitQuery();
+    }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitQuery();
+    }
+  }
+
+  function startNewQuery() {
+    activeConversationId = null;
+    const container = document.getElementById('messages-container');
+    container.innerHTML = `
+      <div class="empty-workspace" id="empty-state">
+        <div class="empty-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <h3>Ask Anything About Ayurvedic IP & Regulations</h3>
+        <p style="margin-top:8px;">Submissions are answered using statutory RAG over IP India gazettes, Drugs & Cosmetics Rules, FSSAI regulations, and TKDL databases.</p>
+      </div>
+    `;
+    document.getElementById('live-evidence-list').innerHTML = `
+      <div style="font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;">
+        Retrieved sources and evidence cards for your query will appear here.
+      </div>
+    `;
+  }
+
+  async function submitQuery() {
+    const input = document.getElementById('query-input');
+    const query = input.value.trim();
+    if (!query) return;
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    const container = document.getElementById('messages-container');
+    const emptyState = document.getElementById('empty-state');
+    if (emptyState) emptyState.remove();
+
+    // User message
+    const userDiv = document.createElement('div');
+    userDiv.className = 'msg-user';
+    userDiv.textContent = query;
+    container.appendChild(userDiv);
+    input.value = '';
+
+    // Assistant loading bubble
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'msg-assistant';
+    loadingDiv.innerHTML = '<div><em>Searching statutory knowledge base & checking evidence...</em></div>';
+    container.appendChild(loadingDiv);
+    container.scrollTop = container.scrollHeight;
+
+    const jur = localStorage.getItem('sakti_jurisdiction') || 'India';
+    const lang = localStorage.getItem('sakti_lang') || 'English';
+
+    try {
+      const res = await apiFetch('/api/chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          query: query,
+          mode: currentMode,
+          jurisdiction: jur,
+          language: lang,
+          conversation_id: activeConversationId
+        })
+      });
+
+      loadingDiv.remove();
+
+      if (!res.success) {
+        const errDiv = document.createElement('div');
+        errDiv.className = 'msg-assistant';
+        errDiv.innerHTML = `<div style="color:#dc2626;"><strong>Error:</strong> ${res.error || 'Failed to generate response.'}</div>`;
+        container.appendChild(errDiv);
+        return;
+      }
+
+      if (res.conversation_id) activeConversationId = res.conversation_id;
+
+      // Render Assistant Response
+      const asstDiv = document.createElement('div');
+      asstDiv.className = 'msg-assistant';
+
+      let confClass = 'high';
+      if (res.confidence_level === 'Medium') confClass = 'medium';
+      if (res.confidence_level === 'Low' || res.abstained) confClass = 'low';
+
+      let citationsHtml = '';
+      if (res.citations && res.citations.length > 0) {
+        citationsHtml = res.citations.map(c => `
+          <button class="citation-card-btn" onclick="viewCitationDetail('${escapeHtml(c.source_name)}', '${escapeHtml(c.section)}')">
+            📄 ${escapeHtml(c.source_name)} (${escapeHtml(c.section || 'General')})
+          </button>
+        `).join('');
+      }
+
+      let abstainHtml = '';
+      if (res.abstained) {
+        abstainHtml = `
+          <div class="abstain-box">
+            <strong>⚠️ Safe Abstention Triggered:</strong> ${escapeHtml(res.abstain_reason || 'Insufficient statutory evidence found.')}
+          </div>
+        `;
+      }
+
+      asstDiv.innerHTML = `
+        <div class="answer-header-row">
+          <div>
+            <strong>Domain:</strong> ${escapeHtml(res.domain || 'General IP')} | 
+            <strong>Jurisdiction:</strong> ${escapeHtml(res.jurisdiction || 'India')}
+          </div>
+          <span class="confidence-pill ${confClass}">
+            Evidence Strength: ${escapeHtml(res.confidence_level || 'Strong')}
+          </span>
+        </div>
+
+        ${abstainHtml}
+
+        <div class="answer-text">${escapeHtml(res.answer)}</div>
+
+        ${citationsHtml ? `<div><strong style="font-size:13px; color:var(--text-muted);">Cited Statutory Sources:</strong><div class="citations-grid">${citationsHtml}</div></div>` : ''}
+
+        <div class="answer-actions">
+          <button class="btn btn-secondary voice-speak-btn" style="padding:6px 12px; font-size:12.5px;" onclick="speakSpecificAnswer(this)">
+            🔊 Read Aloud
+          </button>
+          <button class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;" onclick="downloadReport('${res.conversation_id}', 'pdf')">
+            📥 Download PDF Report
+          </button>
+          <button class="btn btn-secondary" style="padding:6px 12px; font-size:12.5px;" onclick="downloadReport('${res.conversation_id}', 'html')">
+            📄 Export HTML
+          </button>
+          <button class="btn btn-secondary" style="padding:6px 12px; font-size:12.5px;" onclick="requestExpertReview()">
+            🧑‍⚖ Request Human Expert Review
+          </button>
+        </div>
+      `;
+
+      container.appendChild(asstDiv);
+      container.scrollTop = container.scrollHeight;
+
+      // Automatically speak answer if query was voice-initiated
+      if (voiceQueryActive && res.answer) {
+        speakText(res.answer);
+        voiceQueryActive = false;
+      }
+
+      // Update right evidence sidebar
+      updateEvidenceSidebar(res.sources || [], res.citations || []);
+
+    } catch (err) {
+      loadingDiv.remove();
+      const errDiv = document.createElement('div');
+      errDiv.className = 'msg-assistant';
+      errDiv.innerHTML = `<div style="color:#dc2626;">Network error occurred. Please try again.</div>`;
+      container.appendChild(errDiv);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Ask Sahayak';
+    }
+  }
+
+  function updateEvidenceSidebar(sources, citations) {
+    const sidebar = document.getElementById('live-evidence-list');
+    if (!sources.length && !citations.length) {
+      sidebar.innerHTML = '<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;">No active evidence retrieved.</div>';
+      return;
+    }
+
+    let html = '';
+    citations.forEach(c => {
+      html += `
+        <div class="source-card-mini" style="margin-bottom:10px;">
+          <strong>${escapeHtml(c.source_name)}</strong>
+          <span>Section: ${escapeHtml(c.section || 'General Provision')}</span>
+          ${c.url ? `<div style="margin-top:4px;"><a href="${c.url}" target="_blank" style="font-size:11.5px;">View Official Gazette &rarr;</a></div>` : ''}
+        </div>
+      `;
+    });
+    sidebar.innerHTML = html;
+  }
+
+  function viewCitationDetail(sourceName, section) {
+    showEvidenceModal(`Citation Grounding: ${sourceName}`, `
+      <p><strong>Source Authority:</strong> ${sourceName}</p>
+      <p><strong>Provision / Section:</strong> ${section}</p>
+      <p>This statutory reference was retrieved using hybrid dense-sparse search over indexed government gazettes and verified against active rules.</p>
+    `);
+  }
+
+  async function downloadReport(convoId, fmt) {
+    try {
+      const res = await apiFetch('/api/reports', {
+        method: 'POST',
+        body: JSON.stringify({ conversation_id: convoId, format: fmt })
+      });
+      if (res.success && res.download_url) {
+        window.open(res.download_url, '_blank');
+      } else {
+        alert(res.error || 'Report generation failed.');
+      }
+    } catch (e) {
+      alert('Report generation failed.');
+    }
+  }
+
+  function requestExpertReview() {
+    alert('Your query and evidence record have been queued for human expert legal review.\n\nOur team will review the statutory citations and notify you.');
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Voice Bot (Web STT & Web TTS) for IP-RAG ──────────────────────────
+  let chatRecognition = null;
+  let isChatListening = false;
+  let isChatSpeaking = false;
+  let voiceQueryActive = false;
+
+  function initChatSpeech() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return null;
+    const rec = new SpeechRecognition();
+    rec.continuous = false;
+    rec.interimResults = true;
+    return rec;
+  }
+
+  function getTargetSpeechLang() {
+    const lang = localStorage.getItem('sakti_lang') || 'English';
+    if (lang === 'Hindi') return 'hi-IN';
+    if (lang === 'Odia') return 'or-IN';
+    return 'en-IN';
+  }
+
+  function cleanTextForSpeech(text) {
+    if (!text) return '';
+    return text
+      .replace(/\[Source\s*\d+\]/gi, '')
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/[|—–-]/g, ' ')
+      .trim();
+  }
+
+  function speakText(text, onEndCallback) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    const clean = cleanTextForSpeech(text);
+    if (!clean) return;
+
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = getTargetSpeechLang();
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const targetPrefix = utterance.lang.split('-')[0];
+    const match = voices.find(v => v.lang.startsWith(targetPrefix) || v.lang.replace('_', '-').startsWith(targetPrefix));
+    if (match) utterance.voice = match;
+
+    isChatSpeaking = true;
+    updateChatVoiceUI('speaking');
+
+    utterance.onend = () => {
+      isChatSpeaking = false;
+      updateChatVoiceUI('idle');
+      if (onEndCallback) onEndCallback();
+    };
+
+    utterance.onerror = () => {
+      isChatSpeaking = false;
+      updateChatVoiceUI('idle');
+      if (onEndCallback) onEndCallback();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function stopSpeech() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    isChatSpeaking = false;
+    updateChatVoiceUI('idle');
+  }
+
+  function updateChatVoiceUI(state) {
+    const btn = document.getElementById('chat-voice-btn');
+    const icon = document.getElementById('chat-voice-icon');
+    const label = document.getElementById('chat-voice-text');
+    if (!btn) return;
+
+    btn.classList.remove('listening', 'speaking');
+
+    if (state === 'listening') {
+      btn.classList.add('listening');
+      if (icon) icon.textContent = '🔴';
+      if (label) label.textContent = 'Listening...';
+    } else if (state === 'speaking') {
+      btn.classList.add('speaking');
+      if (icon) icon.textContent = '⏹️';
+      if (label) label.textContent = 'Stop Speaking';
+    } else {
+      if (icon) icon.textContent = '🎙️';
+      if (label) label.textContent = 'Voice Bot';
+    }
+  }
+
+  function toggleChatVoiceBot() {
+    if (isChatSpeaking) {
+      stopSpeech();
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Web Speech Recognition is not supported by your browser. Please try Google Chrome or Microsoft Edge.");
+      return;
+    }
+
+    if (isChatListening) {
+      if (chatRecognition) chatRecognition.stop();
+      isChatListening = false;
+      updateChatVoiceUI('idle');
+      return;
+    }
+
+    chatRecognition = initChatSpeech();
+    if (!chatRecognition) return;
+
+    chatRecognition.lang = getTargetSpeechLang();
+    const input = document.getElementById('query-input');
+
+    chatRecognition.onstart = () => {
+      isChatListening = true;
+      voiceQueryActive = true;
+      updateChatVoiceUI('listening');
+    };
+
+    chatRecognition.onresult = (e) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+      for (let i = e.resultIndex; i < e.results.length; ++i) {
+        if (e.results[i].isFinal) {
+          finalTranscript += e.results[i][0].transcript;
+        } else {
+          interimTranscript += e.results[i][0].transcript;
+        }
+      }
+      if (input) {
+        input.value = finalTranscript || interimTranscript;
+      }
+    };
+
+    chatRecognition.onerror = (e) => {
+      console.warn("Speech recognition error:", e.error);
+      isChatListening = false;
+      updateChatVoiceUI('idle');
+    };
+
+    chatRecognition.onend = () => {
+      isChatListening = false;
+      updateChatVoiceUI('idle');
+      if (input && input.value.trim().length > 0 && voiceQueryActive) {
+        submitQuery();
+      }
+    };
+
+    try {
+      chatRecognition.start();
+    } catch (err) {
+      console.error(err);
+      isChatListening = false;
+      updateChatVoiceUI('idle');
+    }
+  }
+
+  function speakSpecificAnswer(btn) {
+    const parentMsg = btn.closest('.msg-assistant');
+    if (!parentMsg) return;
+    const answerTextEl = parentMsg.querySelector('.answer-text');
+    if (!answerTextEl) return;
+    const text = answerTextEl.innerText || answerTextEl.textContent;
+
+    if (isChatSpeaking) {
+      stopSpeech();
+      btn.innerHTML = '🔊 Read Aloud';
+      return;
+    }
+
+    btn.innerHTML = '⏹️ Stop';
+    speakText(text, () => {
+      btn.innerHTML = '🔊 Read Aloud';
+    });
+  }
+</script>
+{% endblock %}

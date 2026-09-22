@@ -1,0 +1,1472 @@
+{% extends "base.html" %}
+{% block title %}IP-SAKTI Sahayak — AI-Powered Ayurvedic IP & Regulatory Guidance{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Landing Hero */
+  .hero-section {
+    padding: 80px 24px 60px;
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 20px;
+  }
+
+  .hero-badge svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .hero-headline {
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.15;
+    margin-bottom: 18px;
+    letter-spacing: -0.025em;
+  }
+
+  .hero-headline span {
+    color: var(--primary);
+  }
+
+  .hero-supporting {
+    font-size: 17px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 32px;
+    max-width: 580px;
+  }
+
+  .hero-cta-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+
+  .hero-cta-group .btn {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+  .trust-indicators {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-green);
+  }
+
+  /* Mock Interface Card */
+  .product-mock-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+
+  .mock-header {
+    padding: 14px 20px;
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .mock-window-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-red { background: #ef4444; }
+  .dot-yellow { background: #f59e0b; }
+  .dot-green { background: #10b981; }
+
+  .mock-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mock-user-msg {
+    align-self: flex-end;
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+    padding: 12px 18px;
+    border-radius: 14px 14px 2px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    max-width: 85%;
+  }
+
+  .mock-ai-msg {
+    align-self: flex-start;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    padding: 16px 20px;
+    border-radius: 2px 14px 14px 14px;
+    font-size: 14px;
+    color: var(--text-main);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .mock-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+    font-size: 12px;
+  }
+
+  .badge-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .badge-confidence {
+    padding: 4px 10px;
+    background: var(--accent-green-light);
+    border: 1px solid var(--accent-green-border);
+    border-radius: var(--radius-pill);
+    font-weight: 700;
+    color: var(--accent-green);
+  }
+
+  /* Quick Actions Section */
+  .section-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+
+  .section-title-group {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .section-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* ==========================================================
+     Horizontal Scrollable Feature Cards (Cover-Flow Focus)
+     ========================================================== */
+  .carousel-outer {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 24px 0 0;
+    padding: 16px 0 28px;
+    overflow: hidden;
+  }
+
+  .carousel-nav-btn {
+    position: absolute;
+    top: calc(50% - 24px);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1.5px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    color: var(--primary);
+    font-size: 20px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 30;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .carousel-nav-btn:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .carousel-nav-btn.prev {
+    left: 16px;
+  }
+
+  .carousel-nav-btn.next {
+    right: 16px;
+  }
+
+  .actions-carousel-track {
+    display: flex;
+    gap: 28px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 24px max(24px, calc(50% - 170px));
+    scroll-behavior: smooth;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .actions-carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carousel-card {
+    flex: 0 0 380px;
+    height: 470px;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    scroll-snap-align: center;
+    background: #ffffff;
+    border: 1.5px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 32px;
+    transform: scale(0.88);
+    opacity: 0.65;
+  }
+
+  /* Embedded Flat Vector Art Background */
+  .carousel-card .card-bg-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(1.08);
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1;
+  }
+
+  .carousel-card .card-gradient-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.88) 45%, #ffffff 92%);
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  /* Center Active Card: Scales up, art is fully visible */
+  .carousel-card.is-center {
+    transform: scale(1.06);
+    opacity: 1;
+    border-color: var(--primary-border);
+    box-shadow: 0 25px 50px -12px rgba(15, 76, 129, 0.28), 0 0 0 1.5px rgba(15, 76, 129, 0.15);
+    z-index: 10;
+  }
+
+  .carousel-card.is-center .card-bg-art {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .carousel-card.is-center .card-gradient-scrim {
+    opacity: 1;
+  }
+
+  .carousel-card .card-top-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-regime-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-main);
+  }
+
+  .carousel-card .action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: #ffffff;
+    color: var(--primary);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .carousel-card .action-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .carousel-card .card-bottom-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .carousel-card h3 {
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .carousel-card p {
+    font-size: 14.5px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .carousel-card .action-link {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.2s ease;
+  }
+
+  .carousel-card.is-center:hover .action-link {
+    transform: translateX(4px);
+    color: var(--accent-green);
+  }
+
+  /* Carousel Dots */
+  .carousel-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  .carousel-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background: var(--border-strong);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .carousel-dot.active {
+    width: 32px;
+    background: var(--primary);
+  }
+
+  /* ==========================================================
+     6-Stage Statutory RAG Flowchart Section
+     ========================================================== */
+  .workflow-section {
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 88px 0;
+  }
+
+  .flowchart-board {
+    margin-top: 48px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .flowchart-pipeline-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+    position: relative;
+  }
+
+  /* Connecting arrow line behind cards */
+  .flowchart-pipeline-row::before {
+    content: '';
+    position: absolute;
+    top: 50px;
+    left: 40px;
+    right: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #0f4c81, #15803d, #0f4c81);
+    z-index: 1;
+    opacity: 0.35;
+  }
+
+  .flowchart-node {
+    background: var(--bg-body);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .flowchart-node:hover, .flowchart-node.active-node {
+    background: #ffffff;
+    border-color: var(--primary);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 30px -8px rgba(15, 76, 129, 0.2);
+  }
+
+  .node-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .node-stage-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary);
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.05em;
+  }
+
+  .node-icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    flex-shrink: 0;
+  }
+
+  .node-icon-circle svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .flowchart-node h4 {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.25;
+  }
+
+  .node-role-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .flowchart-node p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .node-guarantee-pill {
+    margin-top: auto;
+    padding: 5px 8px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .flowchart-connector-arrow {
+    display: none; /* Controlled by grid lines */
+  }
+
+  /* Bifurcated Decision Gate Section */
+  .flowchart-decision-gate {
+    background: linear-gradient(135deg, #f8fafc, #eff6ff);
+    border: 1.5px dashed var(--primary-border);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: 280px 1fr 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+
+  .gate-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .gate-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
+  .gate-header h4 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .gate-header p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .gate-branch {
+    background: #ffffff;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+  }
+
+  .gate-branch.branch-pass {
+    border-color: var(--accent-green-border);
+    background: #f0fdf4;
+  }
+
+  .gate-branch.branch-pass:hover {
+    box-shadow: 0 10px 25px -5px rgba(21, 128, 61, 0.2);
+  }
+
+  .gate-branch.branch-abstain {
+    border-color: #fde68a;
+    background: #fffbeb;
+  }
+
+  .gate-branch.branch-abstain:hover {
+    box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.2);
+  }
+
+  .branch-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .branch-pass .branch-tag { color: var(--accent-green); }
+  .branch-abstain .branch-tag { color: #d97706; }
+
+  .gate-branch strong {
+    font-size: 15px;
+    color: var(--text-main);
+  }
+
+  .gate-branch span {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  @media (max-width: 1400px) {
+    .flowchart-pipeline-row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .flowchart-pipeline-row::before {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1366px) {
+    .hero-section {
+      padding: 48px 24px 36px;
+      gap: 32px;
+    }
+    .carousel-card {
+      flex: 0 0 320px;
+      height: 420px;
+      padding: 24px;
+    }
+    .carousel-card h3 {
+      font-size: 19px;
+    }
+    .carousel-card p {
+      font-size: 13.5px;
+    }
+    .actions-carousel-track {
+      gap: 20px;
+      padding: 20px max(16px, calc(50% - 160px));
+    }
+    .workflow-section {
+      padding: 56px 0;
+    }
+    .flowchart-decision-gate {
+      grid-template-columns: 240px 1fr 1fr;
+      gap: 20px;
+      padding: 22px 24px;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .flowchart-decision-gate {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .flowchart-pipeline-row {
+      grid-template-columns: 1fr;
+    }
+    .actions-carousel-track {
+      padding: 20px 16px;
+    }
+    .carousel-card {
+      flex: 0 0 290px;
+      height: 410px;
+      padding: 20px;
+    }
+    .carousel-nav-btn {
+      display: none;
+    }
+  }
+
+  /* Trust & Safety */
+  .trust-banner {
+    background: linear-gradient(135deg, #0f4c81, #1e3a8a);
+    border-radius: var(--radius-lg);
+    padding: 48px;
+    color: #ffffff;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .trust-banner h2 {
+    color: #ffffff;
+    font-size: 28px;
+    margin-bottom: 14px;
+  }
+
+  .trust-banner p {
+    color: #e2e8f0;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .trust-features {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .trust-feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+  }
+
+  .trust-feature-item svg {
+    width: 20px;
+    height: 20px;
+    color: #4ade80;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .trust-feature-item strong {
+    font-size: 14.5px;
+    color: #ffffff;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .trust-feature-item span {
+    font-size: 13px;
+    color: #cbd5e1;
+  }
+
+  @media (max-width: 1024px) {
+    .hero-section {
+      grid-template-columns: 1fr;
+    }
+    .actions-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .workflow-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .trust-banner {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .actions-grid {
+      grid-template-columns: 1fr;
+    }
+    .workflow-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+      AI-Powered Ayurvedic IP & Regulatory Guidance
+    </div>
+
+    <h1 class="hero-headline">
+      Navigate Ayurvedic IP & Regulations <span>with Confidence.</span>
+    </h1>
+
+    <p class="hero-supporting">
+      Ask questions, explore authoritative sources, understand applicable regulations, discover prior art, and receive source-cited statutory guidance — all in one place.
+    </p>
+
+    <div class="hero-cta-group">
+      <a href="/chat" class="btn btn-primary">Ask Sahayak</a>
+      <a href="#quick-actions" class="btn btn-outline">Explore Knowledge</a>
+    </div>
+
+    <div class="trust-indicators">
+      <div class="trust-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Source-Cited
+      </div>
+      <div class="trust-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Jurisdiction-Aware
+      </div>
+      <div class="trust-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Multilingual
+      </div>
+      <div class="trust-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Safe Abstention
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Mock Interface Card -->
+  <div class="product-mock-card">
+    <div class="mock-header">
+      <div class="mock-window-dots">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+      </div>
+      <span>IP-SAKTI Sahayak — Statutory RAG Workspace</span>
+    </div>
+
+    <div class="mock-body">
+      <div class="mock-user-msg">
+        "Can my Ayurvedic formulation be patented in India?"
+      </div>
+
+      <div class="mock-ai-msg">
+        <p><strong>Patentability Assessment (India Jurisdiction):</strong></p>
+        <p>Patentability requires novelty, inventive step, industrial applicability, and navigating statutory bars:</p>
+        <ul style="padding-left:18px; margin:4px 0;">
+          <li><strong>Section 3(p):</strong> Directly bars traditional knowledge or aggregation of known Ayurvedic properties.</li>
+          <li><strong>Section 3(e):</strong> Mere admixtures without synergistic enhancement are unpatentable.</li>
+          <li><strong>Section 10(4)(d):</strong> Mandatory disclosure of biological material source to NBA.</li>
+        </ul>
+
+        <div class="mock-meta-row">
+          <div style="display:flex; gap:6px;">
+            <span class="badge-source">Patents Act, 1970</span>
+            <span class="badge-source">IP India Gazettes</span>
+          </div>
+          <span class="badge-confidence">Evidence Strength: Strong</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Actions Section: Horizontally Scrollable Feature Cards -->
+<section class="section-container" id="quick-actions" style="overflow:hidden;">
+  <div class="section-title-group">
+    <h2 class="section-title">What can Sahayak help you with?</h2>
+    <p class="section-subtitle">Comprehensive tools tailored for Ayurvedic researchers, innovators, manufacturers, and legal professionals.</p>
+  </div>
+
+  <div class="carousel-outer">
+    <button class="carousel-nav-btn prev" id="carousel-prev" aria-label="Previous card">&#8592;</button>
+    <div class="actions-carousel-track" id="actions-carousel-track">
+      
+      <!-- Card 1: Ask an IP Question -->
+      <a href="/chat" class="carousel-card is-center" data-index="0" data-href="/chat">
+        <!-- Flat Vector Art Background: Law Shield & AI Grid -->
+        <div class="card-bg-art">
+          <svg viewBox="0 0 380 470" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%; height:100%;">
+            <rect width="380" height="470" fill="#f0f7ff"/>
+            <!-- Vector Grid Background -->
+            <path d="M0 80 H380 M0 160 H380 M0 240 H380 M0 320 H380 M0 400 H380" stroke="#bfdbfe" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+            <path d="M80 0 V470 M160 0 V470 M240 0 V470 M320 0 V470" stroke="#bfdbfe" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+            <!-- Central Shield & Gavel Illustration -->
+            <path d="M190 60 L270 95 V180 C270 235 235 285 190 300 C145 285 110 235 110 180 V95 Z" fill="#dbeafe" stroke="#3b82f6" stroke-width="3"/>
+            <path d="M190 90 L245 115 V175 C245 215 220 255 190 270 C160 255 135 215 135 175 V115 Z" fill="#bfdbfe" opacity="0.7"/>
+            <!-- Balance Scales / Justice Vector -->
+            <path d="M190 120 V220" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>
+            <path d="M150 140 H230" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>
+            <path d="M150 140 L135 180 M150 140 L165 180" stroke="#2563eb" stroke-width="2"/>
+            <path d="M130 180 C130 190 170 190 170 180 Z" fill="#2563eb"/>
+            <path d="M230 140 L215 180 M230 140 L245 180" stroke="#2563eb" stroke-width="2"/>
+            <path d="M210 180 C210 190 250 190 250 180 Z" fill="#2563eb"/>
+            <circle cx="190" cy="120" r="7" fill="#1d4ed8"/>
+            <rect x="175" y="220" width="30" height="8" rx="3" fill="#1d4ed8"/>
+          </svg>
+        </div>
+        <div class="card-gradient-scrim"></div>
+
+        <div class="card-top-content">
+          <span class="card-regime-pill" style="color:#1d4ed8; border-color:#bfdbfe;">IP & Patents</span>
+          <div class="action-icon" style="color:#1d4ed8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+        </div>
+
+        <div class="card-bottom-content">
+          <h3>1. Ask an IP Question</h3>
+          <p>Receive evidence-backed guidance on patents, trademarks, geographical indications (GI), copyright, and design rights with built-in voice support.</p>
+          <div class="action-link">Open Assistant &rarr;</div>
+        </div>
+      </a>
+
+      <!-- Card 2: Classify Your Product -->
+      <a href="/analyze-innovation" class="carousel-card" data-index="1" data-href="/analyze-innovation">
+        <!-- Flat Vector Art Background: Ayurvedic Mortar, Leaf & Chemistry -->
+        <div class="card-bg-art">
+          <svg viewBox="0 0 380 470" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%; height:100%;">
+            <rect width="380" height="470" fill="#f0fdf4"/>
+            <!-- Botanical Circles -->
+            <circle cx="190" cy="180" r="110" fill="#dcfce7" opacity="0.6"/>
+            <!-- Mortar and Pestle Vector -->
+            <path d="M120 180 C120 240 260 240 260 180 Z" fill="#86efac" stroke="#15803d" stroke-width="3.5"/>
+            <rect x="110" y="170" width="160" height="14" rx="6" fill="#4ade80" stroke="#15803d" stroke-width="2"/>
+            <rect x="160" y="234" width="60" height="10" rx="4" fill="#166534"/>
+            <!-- Pestle angled -->
+            <path d="M230 110 L180 190" stroke="#166534" stroke-width="12" stroke-linecap="round"/>
+            <!-- Botanical Ayurvedic Leaves -->
+            <path d="M190 70 C160 90 160 130 190 140 C220 130 220 90 190 70 Z" fill="#22c55e" stroke="#15803d" stroke-width="2"/>
+            <path d="M190 70 V140" stroke="#15803d" stroke-width="2"/>
+            <path d="M150 110 C130 125 135 155 160 160 C175 150 170 125 150 110 Z" fill="#4ade80" opacity="0.9"/>
+          </svg>
+        </div>
+        <div class="card-gradient-scrim"></div>
+
+        <div class="card-top-content">
+          <span class="card-regime-pill" style="color:#15803d; border-color:#bbf7d0;">Regime Classifier</span>
+          <div class="action-icon" style="color:#15803d;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+        </div>
+
+        <div class="card-bottom-content">
+          <h3>2. Classify Your Product</h3>
+          <p>Determine whether your product falls under classical medicine, proprietary drug, phytopharmaceutical, food, or cosmetic regulatory regimes.</p>
+          <div class="action-link">Classify Product &rarr;</div>
+        </div>
+      </a>
+
+      <!-- Card 3: Discover Prior Art -->
+      <a href="/prior-art" class="carousel-card" data-index="2" data-href="/prior-art">
+        <!-- Flat Vector Art Background: Ancient Manuscript & Magnifying Loupe -->
+        <div class="card-bg-art">
+          <svg viewBox="0 0 380 470" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%; height:100%;">
+            <rect width="380" height="470" fill="#fffbeb"/>
+            <!-- Classical Palm Leaf Scroll Vector -->
+            <rect x="100" y="80" width="180" height="120" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="3"/>
+            <path d="M120 110 H260 M120 135 H260 M120 160 H220" stroke="#b45309" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+            <!-- Ancient Seal Ribbon -->
+            <circle cx="190" cy="200" r="22" fill="#d97706"/>
+            <path d="M180 216 L175 245 L190 235 L205 245 L200 216 Z" fill="#b45309"/>
+            <circle cx="190" cy="200" r="14" fill="#fbbf24"/>
+            <!-- Magnifying Glass Vector -->
+            <circle cx="235" cy="130" r="38" fill="#ffffff" stroke="#b45309" stroke-width="4" fill-opacity="0.85"/>
+            <line x1="262" y1="157" x2="295" y2="190" stroke="#78350f" stroke-width="8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="card-gradient-scrim"></div>
+
+        <div class="card-top-content">
+          <span class="card-regime-pill" style="color:#b45309; border-color:#fde68a;">Novelty & TKDL</span>
+          <div class="action-icon" style="color:#b45309;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+        </div>
+
+        <div class="card-bottom-content">
+          <h3>3. Discover Prior Art</h3>
+          <p>Search classical Ayurvedic formulations, samhitas, and TKDL database records to evaluate novelty and prior statutory disclosure.</p>
+          <div class="action-link">Search Prior Art &rarr;</div>
+        </div>
+      </a>
+
+      <!-- Card 4: Check ABS Considerations -->
+      <a href="/compliance" class="carousel-card" data-index="3" data-href="/compliance">
+        <!-- Flat Vector Art Background: Sacred Banyan & Biodiversity Seal -->
+        <div class="card-bg-art">
+          <svg viewBox="0 0 380 470" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%; height:100%;">
+            <rect width="380" height="470" fill="#ecfdf5"/>
+            <!-- Biodiversity Globe / Canopy -->
+            <circle cx="190" cy="160" r="95" fill="#a7f3d0" opacity="0.6"/>
+            <!-- Banyan Tree Foliage Outline -->
+            <path d="M190 75 C140 75 110 115 110 155 C110 190 145 200 170 200 V230 H210 V200 C235 200 270 190 270 155 C270 115 240 75 190 75 Z" fill="#34d399" stroke="#059669" stroke-width="3"/>
+            <!-- Trunk & Roots -->
+            <path d="M180 200 V240 M190 200 V245 M200 200 V240" stroke="#065f46" stroke-width="4" stroke-linecap="round"/>
+            <!-- Compliance Hexagon Shield -->
+            <polygon points="190,120 220,135 220,170 190,185 160,170 160,135" fill="#ffffff" stroke="#047857" stroke-width="2.5"/>
+            <polyline points="175 152 185 162 205 142" stroke="#047857" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="card-gradient-scrim"></div>
+
+        <div class="card-top-content">
+          <span class="card-regime-pill" style="color:#047857; border-color:#a7f3d0;">Biodiversity & NBA</span>
+          <div class="action-icon" style="color:#047857;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          </div>
+        </div>
+
+        <div class="card-bottom-content">
+          <h3>4. Check ABS Considerations</h3>
+          <p>Analyze Access & Benefit Sharing (ABS) obligations under the Biological Diversity Act 2002 and recent statutory 2023 amendments.</p>
+          <div class="action-link">Check ABS Compliance &rarr;</div>
+        </div>
+      </a>
+
+      <!-- Card 5: Explore Regulations -->
+      <a href="/regulatory-rag" class="carousel-card" data-index="4" data-href="/regulatory-rag">
+        <!-- Flat Vector Art Background: Parliament Portico & Official Gazette -->
+        <div class="card-bg-art">
+          <svg viewBox="0 0 380 470" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%; height:100%;">
+            <rect width="380" height="470" fill="#eff6ff"/>
+            <!-- Parliament Capitol Vector -->
+            <path d="M190 60 L280 110 H100 Z" fill="#93c5fd" stroke="#1e40af" stroke-width="3"/>
+            <rect x="110" y="110" width="160" height="12" fill="#60a5fa" stroke="#1e40af" stroke-width="2"/>
+            <!-- Classical Pillars -->
+            <rect x="125" y="122" width="16" height="70" rx="3" fill="#bfdbfe" stroke="#1e40af" stroke-width="2"/>
+            <rect x="155" y="122" width="16" height="70" rx="3" fill="#bfdbfe" stroke="#1e40af" stroke-width="2"/>
+            <rect x="185" y="122" width="16" height="70" rx="3" fill="#bfdbfe" stroke="#1e40af" stroke-width="2"/>
+            <rect x="215" y="122" width="16" height="70" rx="3" fill="#bfdbfe" stroke="#1e40af" stroke-width="2"/>
+            <rect x="245" y="122" width="16" height="70" rx="3" fill="#bfdbfe" stroke="#1e40af" stroke-width="2"/>
+            <rect x="100" y="192" width="180" height="16" rx="4" fill="#60a5fa" stroke="#1e40af" stroke-width="2"/>
+            <!-- Official Gazette Stamp Badge -->
+            <circle cx="190" cy="225" r="20" fill="#1e40af"/>
+            <polygon points="190,212 194,222 205,223 197,230 199,240 190,235 181,240 183,230 175,223 186,222" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div class="card-gradient-scrim"></div>
+
+        <div class="card-top-content">
+          <span class="card-regime-pill" style="color:#1e40af; border-color:#bfdbfe;">Statutory Gazettes</span>
+          <div class="action-icon" style="color:#1e40af;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+          </div>
+        </div>
+
+        <div class="card-bottom-content">
+          <h3>5. Explore Regulations</h3>
+          <p>Access AYUSH Schedule T guidelines, Drugs & Cosmetics Rules, FSSAI Ayurveda Aahara standards, and CDSCO gazettes with live timeline tracking.</p>
+          <div class="action-link">Explore Regulations &rarr;</div>
+        </div>
+      </a>
+
+      <!-- Card 6: Verify Sources -->
+      <a href="/sources" class="carousel-card" data-index="5" data-href="/sources">
+        <!-- Flat Vector Art Background: Distributed Node Ledger & Hologram -->
+        <div class="card-bg-art">
+          <svg viewBox="0 0 380 470" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%; height:100%;">
+            <rect width="380" height="470" fill="#faf5ff"/>
+            <!-- Central Node & Constellation -->
+            <circle cx="190" cy="150" r="45" fill="#f3e8ff" stroke="#7e22ce" stroke-width="3"/>
+            <circle cx="190" cy="150" r="30" fill="#d8b4fe" opacity="0.5"/>
+            <path d="M190 150 L110 90 M190 150 L270 90 M190 150 L120 220 M190 150 L260 220" stroke="#c084fc" stroke-width="2" stroke-dasharray="4 4"/>
+            <!-- Outer Nodes -->
+            <circle cx="110" cy="90" r="16" fill="#e9d5ff" stroke="#7e22ce" stroke-width="2"/>
+            <circle cx="270" cy="90" r="16" fill="#e9d5ff" stroke="#7e22ce" stroke-width="2"/>
+            <circle cx="120" cy="220" r="16" fill="#e9d5ff" stroke="#7e22ce" stroke-width="2"/>
+            <circle cx="260" cy="220" r="16" fill="#e9d5ff" stroke="#7e22ce" stroke-width="2"/>
+            <!-- Verified Checkmark in Center -->
+            <path d="M178 150 L186 158 L204 140" stroke="#6b21a8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="card-gradient-scrim"></div>
+
+        <div class="card-top-content">
+          <span class="card-regime-pill" style="color:#7e22ce; border-color:#e9d5ff;">Provenance Registry</span>
+          <div class="action-icon" style="color:#7e22ce;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          </div>
+        </div>
+
+        <div class="card-bottom-content">
+          <h3>6. Verify Sources</h3>
+          <p>Verify every citation directly against indexed official gazettes, statutory texts, India Code, and international WIPO Lex treaties.</p>
+          <div class="action-link">View Source Directory &rarr;</div>
+        </div>
+      </a>
+
+    </div>
+    <button class="carousel-nav-btn next" id="carousel-next" aria-label="Next card">&#8594;</button>
+  </div>
+
+  <!-- Carousel Dots Indicator -->
+  <div class="carousel-dots" id="carousel-dots">
+    <div class="carousel-dot active" data-index="0"></div>
+    <div class="carousel-dot" data-index="1"></div>
+    <div class="carousel-dot" data-index="2"></div>
+    <div class="carousel-dot" data-index="3"></div>
+    <div class="carousel-dot" data-index="4"></div>
+    <div class="carousel-dot" data-index="5"></div>
+  </div>
+</section>
+
+<!-- Architectural Flowchart Section: 6-Stage RAG Pipeline -->
+<section class="workflow-section">
+  <div class="section-container" style="padding-top:0; padding-bottom:0;">
+    <div class="section-title-group" style="text-align:center;">
+      <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 14px; background:var(--primary-light); border:1px solid var(--primary-border); border-radius:var(--radius-pill); font-size:12px; font-weight:700; color:var(--primary); margin-bottom:14px; letter-spacing:0.06em; text-transform:uppercase;">
+        Deterministic Architecture
+      </div>
+      <h2 class="section-title">From Question to Evidence</h2>
+      <p class="section-subtitle">A transparent 6-stage RAG pipeline ensuring verifiable, un-hallucinated guidance.</p>
+    </div>
+
+    <!-- The 6-Stage Pipeline Flowchart Graph -->
+    <div class="flowchart-board">
+      <div class="flowchart-pipeline-row">
+        
+        <!-- Node 1: ASK -->
+        <div class="flowchart-node active-node" data-stage="1">
+          <div class="node-top-bar">
+            <span class="node-stage-badge">01 ASK</span>
+            <div class="node-icon-circle" style="background:#eff6ff; color:#0f4c81;">
+              💬
+            </div>
+          </div>
+          <div>
+            <div class="node-role-tag">Question Intake</div>
+            <h4>Question</h4>
+          </div>
+          <p>User submits query in English, Hindi, or Odia. Normalizes prompt while locking statutory proper nouns (Section 3(d), TRIPS, TKDL, Rule 158B).</p>
+          <div class="node-guarantee-pill">
+            <span style="color:#10b981;">✓</span> Entity Preservation
+          </div>
+        </div>
+
+        <!-- Node 2: CLASSIFY -->
+        <div class="flowchart-node" data-stage="2">
+          <div class="node-top-bar">
+            <span class="node-stage-badge">02 CLASSIFY</span>
+            <div class="node-icon-circle" style="background:#f0fdf4; color:#15803d;">
+              🧭
+            </div>
+          </div>
+          <div>
+            <div class="node-role-tag">Domain Routing</div>
+            <h4>Context</h4>
+          </div>
+          <p>Identify domain (Patent, Trademarks, AYUSH, ABS, GI) and dispatch to competent regulators (IP India, FSSAI, CDSCO, NBA), preventing jurisdiction cross-pollution.</p>
+          <div class="node-guarantee-pill">
+            <span style="color:#10b981;">✓</span> Zero Cross-Pollution
+          </div>
+        </div>
+
+        <!-- Node 3: RETRIEVE -->
+        <div class="flowchart-node" data-stage="3">
+          <div class="node-top-bar">
+            <span class="node-stage-badge">03 RETRIEVE</span>
+            <div class="node-icon-circle" style="background:#fef3c7; color:#d97706;">
+              ⚡
+            </div>
+          </div>
+          <div>
+            <div class="node-role-tag">Dual-Channel Search</div>
+            <h4>Evidence</h4>
+          </div>
+          <p>Hybrid BM25 + Vector search over statutory texts. Combines dense BAAI/bge-m3 embeddings with exact statutory provision boosts (e.g. Section 3(p)).</p>
+          <div class="node-guarantee-pill">
+            <span style="color:#10b981;">✓</span> Dense FAISS + BM25
+          </div>
+        </div>
+
+        <!-- Node 4: VERIFY -->
+        <div class="flowchart-node" data-stage="4">
+          <div class="node-top-bar">
+            <span class="node-stage-badge">04 VERIFY</span>
+            <div class="node-icon-circle" style="background:#faf5ff; color:#7e22ce;">
+              🛡️
+            </div>
+          </div>
+          <div>
+            <div class="node-role-tag">Freshness Audit</div>
+            <h4>Audit</h4>
+          </div>
+          <p>Check jurisdiction, version, and source freshness. Cross-checks gazettes against amendment timelines, filtering out superseded older notifications.</p>
+          <div class="node-guarantee-pill">
+            <span style="color:#10b981;">✓</span> Superseded Filtered
+          </div>
+        </div>
+
+        <!-- Node 5: EXPLAIN -->
+        <div class="flowchart-node" data-stage="5">
+          <div class="node-top-bar">
+            <span class="node-stage-badge">05 EXPLAIN</span>
+            <div class="node-icon-circle" style="background:#eff6ff; color:#1e40af;">
+              📄
+            </div>
+          </div>
+          <div>
+            <div class="node-role-tag">Grounded LLM</div>
+            <h4>Guidance</h4>
+          </div>
+          <p>Generate source-cited answer with claim trace map. Every single legal statement is verified and anchored strictly to an audited [Source N] citation.</p>
+          <div class="node-guarantee-pill">
+            <span style="color:#10b981;">✓</span> 100% Claim-Cited
+          </div>
+        </div>
+
+        <!-- Node 6: ESCALATE -->
+        <div class="flowchart-node" data-stage="6">
+          <div class="node-top-bar">
+            <span class="node-stage-badge">06 ESCALATE</span>
+            <div class="node-icon-circle" style="background:#ecfeff; color:#0891b2;">
+              ⚖️
+            </div>
+          </div>
+          <div>
+            <div class="node-role-tag">Decision Gatekeeper</div>
+            <h4>Abstain</h4>
+          </div>
+          <p>Abstain if evidence is low; trigger expert review. Computes evidence confidence (0-1). If grounding is insufficient, safely refuses hallucination.</p>
+          <div class="node-guarantee-pill">
+            <span style="color:#10b981;">✓</span> Safe Abstention Gate
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bifurcated Decision Gate -->
+      <div class="flowchart-decision-gate">
+        <div class="gate-header">
+          <div class="gate-header-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            Stage 06 Gatekeeper Logic
+          </div>
+          <h4>Dual Verification Outcomes</h4>
+          <p>IP-SAKTI Sahayak strictly differentiates between confident statutory certainty and missing evidence.</p>
+        </div>
+
+        <div class="gate-branch branch-pass">
+          <div class="branch-tag">
+            <span style="font-size:16px;">✓</span> Verified Grounding (Confidence &ge; 0.40)
+          </div>
+          <strong>Deliver Structured Guidance & Evidence Dossier</strong>
+          <span>Synthesizes actionable steps, provisions, active gazette links, and downloadable PDF/HTML audit reports.</span>
+        </div>
+
+        <div class="gate-branch branch-abstain">
+          <div class="branch-tag">
+            <span style="font-size:16px;">⚠️</span> Insufficient / Conflicting Evidence (&lt; 0.40)
+          </div>
+          <strong>Trigger Safe Abstention & Flag Expert Review</strong>
+          <span>Explicitly refuses to speculate, highlights missing regulatory variables, and queues query for human expert lawyer review.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust & Safety Section -->
+<section class="section-container">
+  <div class="trust-banner">
+    <div>
+      <h2>Designed to Know Its Limits.</h2>
+      <p>
+        IP-SAKTI Sahayak is engineered specifically to prevent AI hallucination in legal and regulatory contexts. When authoritative grounding is absent, the system safely abstains rather than producing speculative advice.
+      </p>
+    </div>
+
+    <div class="trust-features">
+      <div class="trust-feature-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <div>
+          <strong>Source-Grounded Retrieval</strong>
+          <span>Every claim is anchored to indexed statutory provisions and official gazettes.</span>
+        </div>
+      </div>
+
+      <div class="trust-feature-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <div>
+          <strong>Safe Abstention Engine</strong>
+          <span>Automatically declines out-of-domain queries or ungrounded legal requests.</span>
+        </div>
+      </div>
+
+      <div class="trust-feature-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <div>
+          <strong>Human Expert Escalation</strong>
+          <span>Flag high-risk or low-confidence queries for human legal review.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Horizontal Feature Cards Carousel with Middle Zoom / Center Detection ──
+  (function initFeatureCarousel() {
+    const track = document.getElementById('actions-carousel-track');
+    const cards = Array.from(track ? track.querySelectorAll('.carousel-card') : []);
+    const dots = Array.from(document.querySelectorAll('.carousel-dot'));
+    const prevBtn = document.getElementById('carousel-prev');
+    const nextBtn = document.getElementById('carousel-next');
+
+    if (!track || !cards.length) return;
+
+    let isScrolling = false;
+
+    function updateActiveCard() {
+      const trackRect = track.getBoundingClientRect();
+      const trackCenter = trackRect.left + trackRect.width / 2;
+
+      let closestCard = null;
+      let minDistance = Infinity;
+      let activeIndex = 0;
+
+      cards.forEach((card, idx) => {
+        const cardRect = card.getBoundingClientRect();
+        const cardCenter = cardRect.left + cardRect.width / 2;
+        const dist = Math.abs(trackCenter - cardCenter);
+
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestCard = card;
+          activeIndex = idx;
+        }
+      });
+
+      cards.forEach((card, idx) => {
+        if (card === closestCard) {
+          card.classList.add('is-center');
+        } else {
+          card.classList.remove('is-center');
+        }
+      });
+
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === activeIndex);
+      });
+    }
+
+    // Scroll to specific card index
+    function scrollToCard(index) {
+      if (index < 0 || index >= cards.length) return;
+      const targetCard = cards[index];
+      const trackRect = track.getBoundingClientRect();
+      const cardRect = targetCard.getBoundingClientRect();
+      const scrollOffset = cardRect.left - trackRect.left - (trackRect.width / 2 - cardRect.width / 2);
+
+      track.scrollBy({
+        left: scrollOffset,
+        behavior: 'smooth'
+      });
+    }
+
+    // Prev / Next button click handlers
+    if (prevBtn) {
+      prevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const currentActive = cards.findIndex(c => c.classList.contains('is-center'));
+        const targetIdx = Math.max(0, currentActive - 1);
+        scrollToCard(targetIdx);
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const currentActive = cards.findIndex(c => c.classList.contains('is-center'));
+        const targetIdx = Math.min(cards.length - 1, currentActive + 1);
+        scrollToCard(targetIdx);
+      });
+    }
+
+    // Dots click handlers
+    dots.forEach((dot, idx) => {
+      dot.addEventListener('click', () => {
+        scrollToCard(idx);
+      });
+    });
+
+    // Card click behavior: if centered, navigate; if not centered, center first then navigate
+    cards.forEach((card, idx) => {
+      card.addEventListener('click', (e) => {
+        if (!card.classList.contains('is-center')) {
+          e.preventDefault();
+          scrollToCard(idx);
+          // Optional short timeout for navigation or let user click again
+          setTimeout(() => {
+            const href = card.getAttribute('href') || card.getAttribute('data-href');
+            if (href) window.location.href = href;
+          }, 350);
+        }
+      });
+    });
+
+    // Scroll listener with requestAnimationFrame debounce
+    let ticking = false;
+    track.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateActiveCard();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+
+    window.addEventListener('resize', updateActiveCard);
+
+    // Initial positioning: center first card on load
+    setTimeout(() => {
+      scrollToCard(0);
+      updateActiveCard();
+    }, 120);
+  })();
+
+  // ── 6-Stage RAG Flowchart Interactive Stage Highlight ──
+  (function initFlowchartInteractions() {
+    const nodes = document.querySelectorAll('.flowchart-node');
+    if (!nodes.length) return;
+
+    nodes.forEach(node => {
+      node.addEventListener('click', () => {
+        nodes.forEach(n => n.classList.remove('active-node'));
+        node.classList.add('active-node');
+      });
+    });
+  })();
+</script>
+{% endblock %}

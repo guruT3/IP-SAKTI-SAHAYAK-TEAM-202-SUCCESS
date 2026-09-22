@@ -1,0 +1,169 @@
+/* IP-SAKTI SAHAYAK — Responsive rules (no horizontal overflow at any breakpoint) */
+
+@media (max-width: 1024px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .chat-layout {
+    grid-template-columns: 180px 1fr 240px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1.3fr 1fr 1fr;
+  }
+
+  .footer-col:nth-child(4) {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 900px) {
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 68px;
+    right: 0;
+    height: calc(100vh - 68px);
+    width: min(320px, 85vw);
+    background: var(--bg-card);
+    border-left: 1px solid var(--border);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 16px;
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    z-index: 95;
+  }
+
+  .nav-links.open {
+    transform: translateX(0);
+  }
+
+  .nav-links .nav-item {
+    width: 100%;
+    padding: 12px 14px;
+  }
+
+  .nav-links .nav-item::after {
+    left: 14px;
+    right: auto;
+    bottom: 8px;
+    width: 18px;
+  }
+
+  .nav-links .nav-item.highlight-btn {
+    justify-content: flex-start;
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .hero {
+    padding: 50px 16px 40px;
+  }
+
+  .hero h1 {
+    font-size: 34px;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chat-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .chat-sidebar,
+  .evidence-panel {
+    border: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 220px;
+  }
+
+  .chat-messages {
+    padding: 16px;
+  }
+
+  .chat-bubble {
+    max-width: 100%;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    padding: 32px 20px 20px;
+  }
+
+  .footer-brand-col {
+    grid-column: 1 / -1;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .stat-grid,
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: 28px;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.back-to-top-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 80;
+  width: 38px;
+  height: 38px;
+  background: var(--bg-card);
+}
+
+html,
+body {
+  overflow-x: hidden;
+}

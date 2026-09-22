@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Admin — IP-SAKTI SAHAYAK{% endblock %}
+{% block content %}
+<section class="page-section">
+  <h1>Admin Dashboard</h1>
+  <p class="muted">Prototype-only view — no production authentication is implemented here.</p>
+  <div id="admin-panel" class="health-panel">Loading system status…</div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+(async () => {
+  const el = document.getElementById('admin-panel');
+  try {
+    const res = await fetch('/api/admin/status');
+    const data = await res.json();
+    el.innerHTML = `
+      <div class="admin-grid">
+        <div><strong>Sources:</strong> ${data.sources}</div>
+        <div><strong>Documents:</strong> ${data.documents}</div>
+        <div><strong>Regulatory updates:</strong> ${data.regulation_updates}</div>
+        <div><strong>FAISS index size:</strong> ${data.faiss_index_size}</div>
+        <div><strong>BM25 index size:</strong> ${data.bm25_index_size}</div>
+        <div><strong>LLM configured:</strong> ${data.llm_backend_configured ? 'Yes' : 'No'}</div>
+        <div><strong>Sources never checked:</strong> ${data.never_checked_sources}</div>
+      </div>
+      <p class="disclaimer-text">${data.prototype_auth_notice}</p>`;
+  } catch (e) {
+    el.innerHTML = '<p class="error-text">Could not load admin status.</p>';
+  }
+})();
+</script>
+{% endblock %}

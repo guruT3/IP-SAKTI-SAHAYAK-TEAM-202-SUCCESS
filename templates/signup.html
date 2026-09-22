@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Sign Up — IP-SAKTI Sahayak{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .auth-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .auth-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .form-group label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .form-group input {
+    padding: 11px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14.5px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .form-group input:focus {
+    border-color: var(--primary);
+  }
+
+  .auth-footer-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1 class="auth-title">Create Account</h1>
+    <p class="auth-sub">Register to save queries, track compliance, and generate reports.</p>
+
+    <form method="POST" action="/signup">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Choose a username" required>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="name@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Create password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Create Account</button>
+    </form>
+
+    <div class="auth-footer-link">
+      Already registered? <a href="/login">Log In</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

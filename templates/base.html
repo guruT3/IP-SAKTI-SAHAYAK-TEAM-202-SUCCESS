@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}IP-SAKTI Sahayak — AI Assistant for Ayurvedic IP & Regulatory Guidance{% endblock %}</title>
+  <meta name="description"
+    content="Multilingual AI Assistant for Ayurvedic IP & Regulatory Guidance. Source-cited, jurisdiction-aware, and evidence-grounded intelligence platform.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <script>
+    window.CURRENT_USER = {{ current_user | tojson if current_user else 'null' }};
+  </script>
+  {% block extra_css %}{% endblock %}
+
+  <style>
+    /* ==========================================================
+       IP-SAKTI SAHAYAK — Clean Modern Light Design System
+       Primary: Deep Navy Blue (#0F4C81)
+       Secondary Accent: Ayurveda Leaf Green (#15803D)
+       Backgrounds: Body (#F8FAFC), Surface (#FFFFFF), Subtle (#F1F5F9)
+       Text: Primary (#0F172A), Muted (#64748B)
+       Borders: (#E2E8F0)
+       ========================================================== */
+    :root {
+      --bg-body: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-hover: #f1f5f9;
+      --bg-subtle: #f1f5f9;
+      --bg-subtle-accent: #eff6ff;
+
+      --primary: #0f4c81;
+      --primary-hover: #0a3761;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+
+      --accent-green: #15803d;
+      --accent-green-hover: #166534;
+      --accent-green-light: #f0fdf4;
+      --accent-green-border: #bbf7d0;
+
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --text-inverse: #ffffff;
+
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+
+      --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-pill: 9999px;
+
+      --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+      max-width: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    body.nav-open {
+      overflow: hidden;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    a:hover {
+      color: var(--primary-hover);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: var(--text-main);
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+    }
+
+    p {
+      color: var(--text-muted);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* ---------------- Header & Navbar ---------------- */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .site-header.scrolled {
+      box-shadow: var(--shadow-md);
+    }
+
+    .navbar-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--primary), #1e3a8a);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(15, 76, 129, 0.25);
+    }
+
+    .brand-mark svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .brand-text-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .brand-name span {
+      color: var(--accent-green);
+    }
+
+    .brand-tagline {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Nav Links & Dropdowns */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-item-wrapper {
+      position: relative;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 12px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--primary);
+      background: var(--bg-subtle-accent);
+    }
+
+    .nav-link svg.chevron {
+      width: 14px;
+      height: 14px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .nav-item-wrapper:hover .nav-link svg.chevron {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      min-width: 230px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      padding: 8px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 100;
+    }
+
+    .nav-item-wrapper:hover .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+    }
+
+    .dropdown-item:hover {
+      background: var(--bg-subtle-accent);
+      color: var(--primary);
+    }
+
+    .dropdown-item svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .dropdown-item:hover svg {
+      color: var(--primary);
+    }
+
+    /* Selectors & Actions Group */
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .select-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .select-pill:hover {
+      border-color: var(--border-strong);
+      background: #ffffff;
+    }
+
+    .select-pill select {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(15, 76, 129, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(15, 76, 129, 0.3);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--primary);
+      border-color: var(--primary-border);
+    }
+
+    .btn-outline:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .btn-secondary {
+      background: var(--bg-subtle);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border-color);
+    }
+
+    .btn-green {
+      background: var(--accent-green);
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(21, 128, 61, 0.2);
+    }
+
+    .btn-green:hover {
+      background: var(--accent-green-hover);
+      color: #ffffff;
+    }
+
+    /* Profile Dropdown */
+    .profile-container {
+      position: relative;
+    }
+
+    .profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px 5px 6px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .profile-btn:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .profile-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .profile-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .profile-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 240px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      padding: 8px 0;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 100;
+    }
+
+    .profile-menu.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .profile-menu-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .profile-menu-header strong {
+      display: block;
+      color: var(--text-main);
+      font-size: 14px;
+    }
+
+    .profile-menu-header span {
+      display: block;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .profile-menu-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-main);
+      text-decoration: none;
+      transition: background 0.15s ease;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+
+    .profile-menu-link:hover {
+      background: var(--bg-subtle-accent);
+      color: var(--primary);
+    }
+
+    .profile-menu-link.logout:hover {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    /* Mobile Drawer Toggle */
+    .mobile-toggle {
+      display: none;
+      width: 38px;
+      height: 38px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+    }
+
+    /* ---------------- Global Flash Messages ---------------- */
+    .flash-container {
+      max-width: 1280px;
+      margin: 16px auto 0;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .flash-toast {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      animation: flash-slide-down 0.25s ease-out;
+    }
+
+    @keyframes flash-slide-down {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .flash-toast.flash-success {
+      background: var(--accent-green-light);
+      border: 1px solid var(--accent-green-border);
+      color: var(--accent-green);
+    }
+
+    .flash-toast.flash-danger {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+    }
+
+    .flash-toast.flash-info {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      color: var(--primary);
+    }
+
+    .flash-close {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: inherit;
+      opacity: 0.7;
+    }
+
+    .flash-close:hover {
+      opacity: 1;
+    }
+
+    /* ---------------- Main Content Layout ---------------- */
+    .main-content {
+      flex: 1;
+    }
+
+    /* ---------------- Footer ---------------- */
+    .site-footer {
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      margin-top: 80px;
+      padding: 60px 0 30px;
+    }
+
+    .footer-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 48px;
+    }
+
+    .footer-brand .brand-name {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .footer-tagline {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 360px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .provenance-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .prov-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .prov-badge:hover {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+      color: var(--primary);
+    }
+
+    .footer-col h4 {
+      font-size: 13.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-main);
+      margin-bottom: 16px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 10px;
+    }
+
+    .footer-col ul li a {
+      font-size: 14px;
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+    }
+
+    .footer-col ul li a:hover {
+      color: var(--primary);
+    }
+
+    .footer-bottom {
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-legal {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .footer-disclaimer {
+      font-size: 12px;
+      color: var(--text-subtle);
+      margin-top: 4px;
+    }
+
+    .back-to-top {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .back-to-top:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    /* Modal for Evidence & Citations */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 680px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modal-pop 0.2s ease-out;
+    }
+
+    @keyframes modal-pop {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .modal-header {
+      padding: 16px 24px;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      color: var(--text-main);
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    /* Responsive Breakdown */
+    @media (max-width: 1280px) {
+      .nav-links {
+        display: none !important;
+      }
+
+      .brand-tagline {
+        display: none;
+      }
+
+      .navbar-container {
+        padding: 0 16px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .mobile-toggle {
+        display: flex;
+      }
+
+      .nav-links.open {
+        display: flex;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #ffffff;
+        flex-direction: column;
+        padding: 24px;
+        gap: 16px;
+        overflow-y: auto;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .nav-item-wrapper {
+        width: 100%;
+      }
+
+      .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        border: none;
+        padding-left: 12px;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .select-pill:nth-of-type(2) {
+        display: none;
+      }
+
+      .btn-primary {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ==========================================================
+       Hamburger Button & Slide-Out Navigation Drawer
+       ========================================================== */
+    .nav-hamburger-btn {
+      display: inline-flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      width: 42px;
+      height: 42px;
+      padding: 9px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
+    .nav-hamburger-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+    }
+
+    .nav-hamburger-btn:hover .hamburger-line {
+      background: var(--primary);
+    }
+
+    .hamburger-line {
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--text-main);
+      border-radius: 2px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-hamburger-btn.active .hamburger-line:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .nav-hamburger-btn.active .hamburger-line:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+
+    .nav-hamburger-btn.active .hamburger-line:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Blurred Backdrop */
+    .nav-drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999;
+    }
+
+    .nav-drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Drawer */
+    .nav-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(440px, 92vw);
+      background: #ffffff;
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .nav-drawer.open {
+      transform: translateX(0);
+    }
+
+    .nav-drawer-header {
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      background: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .nav-drawer-close {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      font-size: 22px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .nav-drawer-close:hover {
+      background: #fee2e2;
+      border-color: #fecaca;
+      color: #dc2626;
+    }
+
+    .nav-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 20px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .drawer-group-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0 8px 6px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 6px;
+    }
+
+    .drawer-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      background: transparent;
+      border: 1px solid transparent;
+      transition: all 0.18s ease;
+      color: var(--text-main);
+    }
+
+    .drawer-item:hover {
+      background: var(--bg-subtle);
+      border-color: var(--border-color);
+      transform: translateX(3px);
+    }
+
+    .drawer-item.active {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+    }
+
+    .drawer-item-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .drawer-item-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .drawer-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .drawer-item-info strong {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .drawer-item-info span {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-drawer-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header / Navigation -->
+  <header class="site-header" id="site-header">
+    <div class="navbar-container">
+      <!-- Hamburger Menu Button -->
+      <button class="nav-hamburger-btn" id="nav-hamburger-btn" type="button" aria-label="Open Navigation Menu"
+        title="Platform Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+
+      <a href="/" class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2.5 L19 5.5 V11 C19 15.5 16 19 12 20.5 C8 19 5 15.5 5 11 V5.5 Z" stroke="currentColor"
+              stroke-width="1.8" stroke-linejoin="round" />
+            <path
+              d="M12 7 C10.2 8.5 9.4 10.2 9.4 12 C9.4 13.8 10.5 15 12 15 C13.5 15 14.6 13.8 14.6 12 C14.6 10.2 13.8 8.5 12 7 Z"
+              stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="brand-text-group">
+          <span class="brand-name">IP-SAKTI <span>Sahayak</span></span>
+          <span class="brand-tagline">Ayurvedic IP & Regulatory Guidance</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="nav-links" id="nav-links">
+        <a href="/" class="nav-link" data-nav="/">Home</a>
+
+        <!-- Explore Dropdown -->
+        <div class="nav-item-wrapper">
+          <span class="nav-link">
+            Explore
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+          <div class="dropdown-menu">
+            <a href="/chat" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              AI Research Assistant
+            </a>
+            <a href="/ip-analytics" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              IP Guidance
+            </a>
+            <a href="/regulatory-rag" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              </svg>
+              Regulatory Guidance
+            </a>
+            <a href="/prior-art" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Prior-Art Discovery
+            </a>
+            <a href="/compliance" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+              ABS & Compliance
+            </a>
+          </div>
+        </div>
+
+        <!-- Knowledge Dropdown -->
+        <div class="nav-item-wrapper">
+          <span class="nav-link">
+            Knowledge
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+          <div class="dropdown-menu">
+            <a href="/prior-art" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+              Traditional Knowledge & TKDL
+            </a>
+            <a href="/regulations" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              Laws & Regulations
+            </a>
+            <a href="/comparative" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+              </svg>
+              International Frameworks
+            </a>
+            <a href="/sources" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+              Authoritative Sources
+            </a>
+            <a href="/knowledge-graph" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+              Knowledge Graph
+            </a>
+          </div>
+        </div>
+
+        <!-- Tools Dropdown -->
+        <div class="nav-item-wrapper">
+          <span class="nav-link">
+            Tools
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+          <div class="dropdown-menu">
+            <a href="/analyze-innovation" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Product Classification
+            </a>
+            <a href="/compliance" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="9" x2="15" y2="9"></line>
+                <line x1="9" y1="13" x2="15" y2="13"></line>
+                <line x1="9" y1="17" x2="13" y2="17"></line>
+              </svg>
+              Compliance Checklist
+            </a>
+            <a href="/documents" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+              </svg>
+              Document Analysis
+            </a>
+            <a href="/benchmark" class="dropdown-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              Benchmarks
+            </a>
+          </div>
+        </div>
+
+        <!-- Resources Dropdown -->
+        <div class="nav-item-wrapper">
+          <span class="nav-link">
+            Resources
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+          <div class="dropdown-menu">
+            <a href="/regulations" class="dropdown-item">Regulatory Updates</a>
+            <a href="/sources" class="dropdown-item">Authoritative Source Directory</a>
+            <a href="/admin" class="dropdown-item">System Admin & Health</a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Controls & CTA -->
+      <div class="header-controls">
+        <!-- Language Selector -->
+        <div class="select-pill" title="Select Language">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <select id="global-lang-select" onchange="setGlobalLanguage(this.value)">
+            <option value="English">EN</option>
+            <option value="Hindi">हिन्दी</option>
+            <option value="Odia">ଓଡ଼ିଆ</option>
+          </select>
+        </div>
+
+        <!-- Jurisdiction Selector -->
+        <div class="select-pill" title="Select Jurisdiction">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          <select id="global-jurisdiction-select" onchange="setGlobalJurisdiction(this.value)">
+            <option value="India">India</option>
+            <option value="International">International</option>
+          </select>
+        </div>
+
+        <!-- Primary CTA -->
+        <a href="/chat" class="btn btn-primary">Ask Sahayak</a>
+
+        <!-- User Profile / Auth Buttons -->
+        {% if current_user %}
+        <div class="profile-container">
+          <button class="profile-btn" id="profile-toggle" aria-haspopup="true">
+            <div class="profile-avatar">{{ current_user.username[0]|upper }}</div>
+            <span class="profile-name">{{ current_user.username }}</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="profile-menu" id="profile-menu">
+            <div class="profile-menu-header">
+              <strong>{{ current_user.username }}</strong>
+              <span>{{ current_user.email }}</span>
+            </div>
+            <a href="/" class="profile-menu-link">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              Dashboard
+            </a>
+            <button class="profile-menu-link"
+              onclick="copyReferralLink('{{ request.host_url }}signup?ref={{ current_user.referral_code }}')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              Copy Referral Link
+            </button>
+            <a href="/logout" class="profile-menu-link logout">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Log Out
+            </a>
+          </div>
+        </div>
+        {% else %}
+        <a href="/login" class="btn btn-secondary">Log In</a>
+        <a href="/signup" class="btn btn-outline">Sign Up</a>
+        {% endif %}
+
+        <!-- Mobile Drawer Toggle -->
+        <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hamburger Navigation Drawer & Backdrop -->
+  <div class="nav-drawer-backdrop" id="nav-drawer-backdrop"></div>
+  <aside class="nav-drawer" id="nav-drawer" aria-label="Platform Navigation">
+    <div class="nav-drawer-header">
+      <a href="/" class="brand" style="text-decoration:none;">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2.5 L19 5.5 V11 C19 15.5 16 19 12 20.5 C8 19 5 15.5 5 11 V5.5 Z" stroke="currentColor"
+              stroke-width="1.8" stroke-linejoin="round" />
+            <path
+              d="M12 7 C10.2 8.5 9.4 10.2 9.4 12 C9.4 13.8 10.5 15 12 15 C13.5 15 14.6 13.8 14.6 12 C14.6 10.2 13.8 8.5 12 7 Z"
+              stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="brand-text-group">
+          <span class="brand-name">IP-SAKTI <span>Sahayak</span></span>
+          <span class="brand-tagline">Ayurvedic IP & Regulatory Guidance</span>
+        </div>
+      </a>
+      <button class="nav-drawer-close" id="nav-drawer-close" aria-label="Close menu">&times;</button>
+    </div>
+
+    <div class="nav-drawer-body">
+      <div>
+        <div class="drawer-group-title">AI Intelligence Engines</div>
+        <div class="drawer-items-list">
+          <a href="/chat" class="drawer-item" data-nav="/chat">
+            <div class="drawer-item-icon" style="background:#eff6ff; color:#0f4c81;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>AI Research Assistant (IP RAG)</strong>
+              <span>Statutory IP Q&A with Web STT/TTS Voice Bot</span>
+            </div>
+          </a>
+
+          <a href="/regulatory-rag" class="drawer-item" data-nav="/regulatory-rag">
+            <div class="drawer-item-icon" style="background:#f0fdf4; color:#15803d;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Regulatory Guidance RAG</strong>
+              <span>AYUSH, FSSAI, CDSCO, FDA & EMA compliance</span>
+            </div>
+          </a>
+
+          <a href="/analyze-innovation" class="drawer-item" data-nav="/analyze-innovation">
+            <div class="drawer-item-icon" style="background:#fef3c7; color:#d97706;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Innovation & Product Classifier</strong>
+              <span>Ayurvedic formulations, botanical extract & 5-axis radar</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="drawer-group-title">Discovery & Compliance</div>
+        <div class="drawer-items-list">
+          <a href="/prior-art" class="drawer-item" data-nav="/prior-art">
+            <div class="drawer-item-icon" style="background:#faf5ff; color:#7e22ce;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Prior-Art & TKDL Search</strong>
+              <span>Classical Sanskrit formulations & novelty evaluation</span>
+            </div>
+          </a>
+
+          <a href="/compliance" class="drawer-item" data-nav="/compliance">
+            <div class="drawer-item-icon" style="background:#ecfdf5; color:#059669;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>ABS & Biodiversity Compliance</strong>
+              <span>NBA Section 6, BDA benefit-sharing & Schedule T GMP</span>
+            </div>
+          </a>
+
+          <a href="/comparative" class="drawer-item" data-nav="/comparative">
+            <div class="drawer-item-icon" style="background:#f0f9ff; color:#0284c7;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Cross-Country Comparative IP</strong>
+              <span>India vs US FDA vs EMA vs WIPO comparison</span>
+            </div>
+          </a>
+
+          <a href="/knowledge-graph" class="drawer-item" data-nav="/knowledge-graph">
+            <div class="drawer-item-icon" style="background:#fff1f2; color:#e11d48;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Interactive Knowledge Graph</strong>
+              <span>Interconnected statutes, botanical entities & provisions</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="drawer-group-title">Analytics, Documents & Audits</div>
+        <div class="drawer-items-list">
+          <a href="/ip-analytics" class="drawer-item" data-nav="/ip-analytics">
+            <div class="drawer-item-icon" style="background:#eff6ff; color:#1d4ed8;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>IP Analytics & Patents Dashboard</strong>
+              <span>CGPDTM filing metrics, patent grants & state trends</span>
+            </div>
+          </a>
+
+          <a href="/documents" class="drawer-item" data-nav="/documents">
+            <div class="drawer-item-icon" style="background:#f8fafc; color:#475569;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Document Intelligence Analyzer</strong>
+              <span>Upload legal agreements & PDFs for compliance check</span>
+            </div>
+          </a>
+
+          <a href="/regulations" class="drawer-item" data-nav="/regulations">
+            <div class="drawer-item-icon" style="background:#fef2f2; color:#dc2626;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Regulations & Gazette Monitor</strong>
+              <span>Live timeline of gazette updates & amendments</span>
+            </div>
+          </a>
+
+          <a href="/sources" class="drawer-item" data-nav="/sources">
+            <div class="drawer-item-icon" style="background:#ecfeff; color:#0891b2;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Authoritative Source Directory</strong>
+              <span>Official registries: IP India, AYUSH, WIPO Lex, TKDL</span>
+            </div>
+          </a>
+
+          <a href="/benchmark" class="drawer-item" data-nav="/benchmark">
+            <div class="drawer-item-icon" style="background:#f0fdfa; color:#0d9488;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            </div>
+            <div class="drawer-item-info">
+              <strong>Benchmark & Red-Team Audit</strong>
+              <span>System evaluation scorecard & anti-hallucination traps</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-drawer-footer">
+      <span>SIH 2026 &bull; PS26045</span>
+      <span>v2.4 Grounded RAG</span>
+    </div>
+  </aside>
+
+  <!-- Global Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-container" id="flash-container">
+    {% for category, message in messages %}
+    <div class="flash-toast flash-{{ category if category in ['success', 'danger', 'info'] else 'info' }}">
+      <span>{{ message }}</span>
+      <button type="button" class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  <!-- Main Content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand" style="margin-bottom:12px;">
+            <div class="brand-mark">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2.5 L19 5.5 V11 C19 15.5 16 19 12 20.5 C8 19 5 15.5 5 11 V5.5 Z" stroke="currentColor"
+                  stroke-width="1.8" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <span class="brand-name">IP-SAKTI <span>Sahayak</span></span>
+          </a>
+          <p class="footer-tagline">
+            Multilingual AI Assistant for Ayurvedic IP & Regulatory Guidance. Grounded in official gazettes, TKDL,
+            National Biodiversity Authority, and statutory frameworks.
+          </p>
+          <div class="provenance-badges">
+            <a href="https://ipindia.gov.in" target="_blank" rel="noopener" class="prov-badge">IP India</a>
+            <a href="https://tkdl.res.in" target="_blank" rel="noopener" class="prov-badge">TKDL</a>
+            <a href="https://nbaindia.org" target="_blank" rel="noopener" class="prov-badge">NBA</a>
+            <a href="https://ayush.gov.in" target="_blank" rel="noopener" class="prov-badge">AYUSH</a>
+            <a href="https://www.wipo.int" target="_blank" rel="noopener" class="prov-badge">WIPO</a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="/chat">AI Research Assistant</a></li>
+            <li><a href="/ip-analytics">IP Guidance</a></li>
+            <li><a href="/regulatory-rag">Regulatory Guidance</a></li>
+            <li><a href="/prior-art">Prior-Art Discovery</a></li>
+            <li><a href="/compliance">ABS Guidance</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Tools & Knowledge</h4>
+          <ul>
+            <li><a href="/analyze-innovation">Product Classification</a></li>
+            <li><a href="/compliance">Compliance Checklist</a></li>
+            <li><a href="/documents">Document Analysis</a></li>
+            <li><a href="/knowledge-graph">Knowledge Graph</a></li>
+            <li><a href="/sources">Authoritative Sources</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="/regulations">Regulatory Updates</a></li>
+            <li><a href="/dashboard">User Dashboard</a></li>
+            <li><a href="/benchmark">System Benchmarks</a></li>
+            <li><a href="/admin">System Status</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          <p class="footer-legal">&copy; <span id="footer-year"></span> IP-SAKTI Sahayak. Grounded statutory
+            intelligence.</p>
+          <p class="footer-disclaimer">IP-SAKTI Sahayak provides informational guidance and does not constitute legal or
+            regulatory advice.</p>
+        </div>
+        <button class="back-to-top" id="back-to-top" title="Back to top">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Global Modal for Evidence & Citations -->
+  <div id="evidence-modal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title">Evidence & Statutory Grounding</h3>
+        <button class="modal-close" onclick="closeEvidenceModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-content"></div>
+    </div>
+  </div>
+
+  <script>
+    // Shared Application Logic
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+    // Hamburger Slide-Out Drawer Logic
+    const hamburgerBtn = document.getElementById('nav-hamburger-btn');
+    const navDrawer = document.getElementById('nav-drawer');
+    const drawerBackdrop = document.getElementById('nav-drawer-backdrop');
+    const drawerCloseBtn = document.getElementById('nav-drawer-close');
+
+    function openNavDrawer() {
+      if (navDrawer && drawerBackdrop) {
+        navDrawer.classList.add('open');
+        drawerBackdrop.classList.add('open');
+        if (hamburgerBtn) hamburgerBtn.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeNavDrawer() {
+      if (navDrawer && drawerBackdrop) {
+        navDrawer.classList.remove('open');
+        drawerBackdrop.classList.remove('open');
+        if (hamburgerBtn) hamburgerBtn.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    if (hamburgerBtn) {
+      hamburgerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (navDrawer && navDrawer.classList.contains('open')) {
+          closeNavDrawer();
+        } else {
+          openNavDrawer();
+        }
+      });
+    }
+
+    if (drawerCloseBtn) {
+      drawerCloseBtn.addEventListener('click', closeNavDrawer);
+    }
+
+    if (drawerBackdrop) {
+      drawerBackdrop.addEventListener('click', closeNavDrawer);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navDrawer && navDrawer.classList.contains('open')) {
+        closeNavDrawer();
+      }
+    });
+
+    // Close drawer when clicking links
+    if (navDrawer) {
+      navDrawer.querySelectorAll('.drawer-item').forEach(item => {
+        item.addEventListener('click', () => {
+          closeNavDrawer();
+        });
+      });
+    }
+
+    // Mobile nav toggle
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const navLinks = document.getElementById('nav-links');
+    if (mobileToggle && navLinks) {
+      mobileToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('open');
+      });
+    }
+
+    // Profile menu toggle
+    const profileToggle = document.getElementById('profile-toggle');
+    const profileMenu = document.getElementById('profile-menu');
+    if (profileToggle && profileMenu) {
+      profileToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileMenu.classList.toggle('show');
+      });
+      document.addEventListener('click', (e) => {
+        if (!profileMenu.contains(e.target) && !profileToggle.contains(e.target)) {
+          profileMenu.classList.remove('show');
+        }
+      });
+    }
+
+    // Sticky header shadow
+    const header = document.getElementById('site-header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 10) header.classList.add('scrolled');
+      else header.classList.remove('scrolled');
+    });
+
+    // Back to top
+    const backToTop = document.getElementById('back-to-top');
+    if (backToTop) {
+      backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    // Global Language & Jurisdiction Management
+    const UI_DICTIONARY = {
+      'hi': {
+        "Ask Sahayak": "सहायक से पूछें",
+        "AI Research Assistant": "एआई अनुसंधान सहायक",
+        "IP Guidance": "आईपी मार्गदर्शिका",
+        "Regulatory Guidance": "नियामक मार्गदर्शिका",
+        "Prior-Art Discovery": "पूर्व कला खोज (Prior-Art)",
+        "ABS Guidance": "एबीएस (ABS) अनुपालन",
+        "Product Classification": "उत्पाद वर्गीकरण",
+        "Compliance Checklist": "अनुपालन चेकलिस्ट",
+        "Document Analysis": "दस्तावेज़ विश्लेषण",
+        "Knowledge Graph": "ज्ञान ग्राफ (Knowledge Graph)",
+        "More Tools": "अन्य उपकरण",
+        "Regulatory Updates": "नियामक अपडेट",
+        "Authoritative Source Directory": "प्रामाणिक स्रोत निर्देशिका",
+        "System Admin & Health": "सिस्टम व्यवस्थापक व स्थिति",
+        "Log In": "लॉग इन",
+        "Sign Up": "साइन अप",
+        "Dashboard": "डैशबोर्ड",
+        "Log Out": "लॉग आउट",
+        "Search": "खोजें",
+        "Submit": "सबमिट करें",
+        "Explore": "एक्सप्लोर करें",
+        "Tools & Knowledge": "उपकरण और ज्ञान",
+        "Platform": "प्लेटफ़ॉर्म",
+        "Evidence & Statutory Grounding": "साक्ष्य एवं कानूनी आधार"
+      },
+      'or': {
+        "Ask Sahayak": "ସହାୟକଙ୍କୁ ପଚାରନ୍ତୁ",
+        "AI Research Assistant": "ଏଆଇ ଗବେଷଣା ସହାୟକ",
+        "IP Guidance": "ଆଇପି ମାର୍ଗଦର୍ଶିକା",
+        "Regulatory Guidance": "ନିୟାମକ ମାର୍ଗଦର୍ଶିକା",
+        "Prior-Art Discovery": "ପୂର୍ବ କଳା ସନ୍ଧାନ (Prior-Art)",
+        "ABS Guidance": "ଏବିଏସ୍ (ABS) ଅନୁପାଳନ",
+        "Product Classification": "ଉତ୍ପାଦ ବର୍ଗୀକରଣ",
+        "Compliance Checklist": "ଅନୁପାଳନ ଚେକଲିଷ୍ଟ",
+        "Document Analysis": "ଦଲିଲ ବିଶ୍ଲେଷଣ",
+        "Knowledge Graph": "ଜ୍ଞାନ ଗ୍ରାଫ୍ (Knowledge Graph)",
+        "More Tools": "ଅନ୍ୟାନ୍ୟ ଉପକରଣ",
+        "Regulatory Updates": "ନିୟାମକ ଅପଡେଟ୍",
+        "Authoritative Source Directory": "ପ୍ରାମାଣିକ ଉତ୍ସ ନିର୍ଦ୍ଦେଶିକା",
+        "System Admin & Health": "ସିଷ୍ଟମ୍ ଆଡମିନ୍ ଓ ସ୍ଥିତି",
+        "Log In": "ଲଗ୍ ଇନ୍",
+        "Sign Up": "ସାଇନ୍ ଅପ୍",
+        "Dashboard": "ଡ୍ୟାସବୋର୍ଡ",
+        "Log Out": "ଲଗ୍ ଆଉଟ୍",
+        "Search": "ଖୋଜନ୍ତୁ",
+        "Submit": "ଦାଖଲ କରନ୍ତୁ",
+        "Explore": "ଅନ୍ବେଷଣ କରନ୍ତୁ",
+        "Tools & Knowledge": "ଉପକରଣ ଓ ଜ୍ଞାନ",
+        "Platform": "ପ୍ଲାଟଫର୍ମ",
+        "Evidence & Statutory Grounding": "ପ୍ରମାଣ ଓ ଆଇନଗତ ଆଧାର"
+      }
+    };
+
+    function applyDOMUITranslation(lang) {
+      const code = (lang === 'Hindi' || lang === 'hi') ? 'hi' : (lang === 'Odia' || lang === 'or') ? 'or' : 'en';
+      const dict = UI_DICTIONARY[code];
+
+      // Store original English text if not already stored
+      const elements = document.querySelectorAll('a, button, h1, h2, h3, h4, span.nav-label, span.brand-name, label');
+      elements.forEach(el => {
+        if (!el.getAttribute('data-en-text')) {
+          el.setAttribute('data-en-text', el.innerText.trim());
+        }
+        const orig = el.getAttribute('data-en-text');
+        if (code === 'en') {
+          if (orig && dict && dict[orig]) el.innerText = orig;
+        } else if (dict && dict[orig]) {
+          el.innerText = dict[orig];
+        }
+      });
+    }
+
+    function setGoogleTranslateCookie(lang) {
+      const code = (lang === 'Hindi' || lang === 'hi') ? 'hi' : (lang === 'Odia' || lang === 'or') ? 'or' : 'en';
+      const expires = new Date();
+      expires.setTime(expires.getTime() + (30 * 24 * 60 * 60 * 1000));
+
+      if (code === 'en') {
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + window.location.hostname + ";";
+      } else {
+        document.cookie = "googtrans=/en/" + code + "; path=/; expires=" + expires.toUTCString();
+        document.cookie = "googtrans=/en/" + code + "; path=/; domain=" + window.location.hostname + "; expires=" + expires.toUTCString();
+      }
+
+      const combo = document.querySelector('.goog-te-combo');
+      if (combo) {
+        combo.value = code;
+        combo.dispatchEvent(new Event('change'));
+      }
+    }
+
+    function setGlobalLanguage(lang) {
+      localStorage.setItem('sakti_lang', lang);
+      applyDOMUITranslation(lang);
+      setGoogleTranslateCookie(lang);
+      const evt = new CustomEvent('sakti-lang-change', { detail: lang });
+      window.dispatchEvent(evt);
+    }
+
+    function setGlobalJurisdiction(jurisdiction) {
+      localStorage.setItem('sakti_jurisdiction', jurisdiction);
+      const evt = new CustomEvent('sakti-jurisdiction-change', { detail: jurisdiction });
+      window.dispatchEvent(evt);
+    }
+
+    // Initialize selectors & translation from localStorage
+    (function initSelectors() {
+      const savedLang = localStorage.getItem('sakti_lang') || 'English';
+      const savedJur = localStorage.getItem('sakti_jurisdiction') || 'India';
+      const langSel = document.getElementById('global-lang-select');
+      const jurSel = document.getElementById('global-jurisdiction-select');
+      if (langSel) langSel.value = savedLang;
+      if (jurSel) jurSel.value = savedJur;
+
+      if (savedLang !== 'English') {
+        setTimeout(() => {
+          applyDOMUITranslation(savedLang);
+          setGoogleTranslateCookie(savedLang);
+        }, 100);
+      }
+    })();
+
+    // Copy Referral Link helper
+    function copyReferralLink(url) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert('Referral link copied to clipboard!\n\n' + url);
+        });
+      } else {
+        prompt('Copy your referral link:', url);
+      }
+    }
+
+    // Evidence Modal Functions
+    function showEvidenceModal(title, htmlContent) {
+      const modal = document.getElementById('evidence-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalBody = document.getElementById('modal-content');
+      if (modalTitle) modalTitle.textContent = title;
+      if (modalBody) modalBody.innerHTML = htmlContent;
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeEvidenceModal() {
+      const modal = document.getElementById('evidence-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    // API fetch helper
+    async function apiFetch(url, options = {}) {
+      const opts = Object.assign({ headers: { 'Content-Type': 'application/json' } }, options);
+      const res = await fetch(url, opts);
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        data = { success: false, error: 'Unexpected server response.' };
+      }
+      if (!res.ok && data.success === undefined) {
+        data = { success: false, error: data.error || `Request failed with status ${res.status}` };
+      }
+      return data;
+    }
+
+    // Highlight active nav item
+    (function highlightNav() {
+      const path = window.location.pathname;
+      document.querySelectorAll('[data-nav]').forEach(el => {
+        if (el.getAttribute('data-nav') === path) {
+          el.classList.add('active');
+        }
+      });
+    })();
+  </script>
+
+  <!-- Google Translate Element for Full-Page Multilingual UI Conversion -->
+  <div id="google_translate_element" style="display:none;"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,or',
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript"
+    src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

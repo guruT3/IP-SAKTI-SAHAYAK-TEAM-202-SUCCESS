@@ -1,0 +1,36 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Data / indexes / cache (regenerated at runtime)
+data/raw/*
+data/processed/*
+data/index/*
+data/cache/*
+data/reports/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/index/.gitkeep
+!data/cache/.gitkeep
+!data/reports/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
