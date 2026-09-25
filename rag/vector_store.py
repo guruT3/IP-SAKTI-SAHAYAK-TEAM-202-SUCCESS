@@ -1,23 +1,30 @@
 """
 IP-SAKTI SAHAYAK
-Vector Store (FAISS with NumPy Fallback)
-=========================================
+Vector Store (FAISS with NumPy Fallback & Index Versioning)
+============================================================
 High-performance vector index for dense semantic embeddings (BAAI/bge-m3).
 Uses FAISS IndexFlatIP (cosine similarity via normalized inner product) when
 available, and seamlessly falls back to a high-speed NumPy matrix dot-product
 index when FAISS is not present.
+
+Per spec Section 8: Includes index/corpus version metadata tracking to prevent
+stale indexes from being silently used after source updates.
 """
 
 import logging
 import pickle
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 
 import numpy as np
 
 from config import settings
 
 logger = logging.getLogger(__name__)
+
+CORPUS_VERSION = "2.0.0-Ayurveda-IP-Upgrade"
+INDEX_VERSION = "v2.0"
 
 
 class NumpyFlatIPIndex:
@@ -62,6 +69,13 @@ class VectorStore:
         self._index = None
         self._metadata: List[Dict[str, Any]] = []
         self._backend = "uninitialized"
+        self._version_info: Dict[str, Any] = {
+            "corpus_version": CORPUS_VERSION,
+            "index_version": INDEX_VERSION,
+            "embedding_model": settings.EMBEDDING_MODEL,
+            "embedding_dimension": self.dimension,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     def _ensure_backend(self):
         try:
@@ -81,6 +95,7 @@ class VectorStore:
             self._backend = "numpy"
             logger.info("Created new NumPy IndexFlatIP(dim=%d)", self.dimension)
         self._metadata = []
+        self._version_info["created_at"] = datetime.now(timezone.utc).isoformat()
 
     def load(self) -> bool:
         if not self.index_path.exists() and not self.npy_path.exists():
@@ -101,11 +116,16 @@ class VectorStore:
 
             if self.meta_path.exists():
                 with open(self.meta_path, "rb") as f:
-                    self._metadata = pickle.load(f)
+                    loaded = pickle.load(f)
+                    if isinstance(loaded, dict) and "chunks" in loaded:
+                        self._metadata = loaded["chunks"]
+                        self._version_info = loaded.get("version_info", self._version_info)
+                    else:
+                        self._metadata = loaded if isinstance(loaded, list) else []
             else:
                 self._metadata = []
 
-            logger.info("Loaded VectorStore (%d vectors, backend=%s)", self.size, self._backend)
+            logger.info("Loaded VectorStore (%d vectors, backend=%s, version=%s)", self.size, self._backend, self._version_info.get("index_version"))
             return True
         except Exception as e:
             logger.warning("Failed to load vector store from disk (%s); initializing fresh.", e)
@@ -122,8 +142,12 @@ class VectorStore:
             elif isinstance(self._index, NumpyFlatIPIndex):
                 np.save(str(self.npy_path), self._index.vectors)
 
+            payload = {
+                "chunks": self._metadata,
+                "version_info": self._version_info,
+            }
             with open(self.meta_path, "wb") as f:
-                pickle.dump(self._metadata, f)
+                pickle.dump(payload, f)
             logger.info("Saved VectorStore (%d vectors) to disk", self.size)
         except Exception as e:
             logger.error("Failed to save vector store: %s", e)
@@ -168,6 +192,10 @@ class VectorStore:
     def backend(self) -> str:
         return self._backend
 
+    @property
+    def version_info(self) -> Dict[str, Any]:
+        return self._version_info
+
 
 vector_store = VectorStore()
 
@@ -180,10 +208,9 @@ if __name__ == "__main__":
     vs = VectorStore(dimension=8)
     vs.create_index()
     vecs = np.random.rand(4, 8).astype("float32")
-    # Normalize for cosine similarity
     vecs = vecs / np.linalg.norm(vecs, axis=1, keepdims=True)
     meta = [{"chunk_id": f"c{i}", "title": f"Doc {i}"} for i in range(4)]
     vs.add(vecs, meta)
     results = vs.search(vecs[0], top_k=2)
     assert len(results) > 0
-    print("VectorStore self-test passed! Top result:", results[0][0]["title"], "Score:", results[0][1])
+    print("VectorStore self-test passed! Version:", vs.version_info.get("index_version"))

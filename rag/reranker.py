@@ -2,10 +2,10 @@
 IP-SAKTI SAHAYAK
 Reranker
 ========
-Cross-encoder reranking of the top-N hybrid candidates down to the
-final evidence set (spec Section 16: top 20 -> top 5). Falls back to
-the incoming hybrid ranking unchanged if the reranker model can't be
-loaded, so the pipeline degrades gracefully instead of failing.
+Cross-encoder reranking of top-N hybrid candidates down to the final
+evidence set (spec Section 12 & 16: top 20 -> top 5).
+
+Upgraded with full exception safety and candidate metadata preservation.
 """
 
 import logging
@@ -36,8 +36,8 @@ class Reranker:
             logger.info("Loaded reranker model %s", settings.RERANKER_MODEL)
         except Exception as e:
             logger.warning(
-                "Reranker model '%s' unavailable (%s) — falling back to the incoming "
-                "hybrid-search ranking unchanged.", settings.RERANKER_MODEL, e,
+                "Reranker model '%s' unavailable (%s) — falling back to incoming hybrid ranking.",
+                settings.RERANKER_MODEL, e,
             )
             self._backend = "fallback"
 
@@ -45,21 +45,38 @@ class Reranker:
         top_n = top_n or settings.RERANK_TOP_N
         if not candidates:
             return []
+
+        # Deduplicate candidates by chunk_id/text snippet while preserving order
+        seen = set()
+        unique_candidates = []
+        for c in candidates:
+            key = str(c.get("chunk_id") or c.get("text", "")[:80])
+            if key not in seen:
+                seen.add(key)
+                # Create clean copy so incoming dict is not mutated in place
+                unique_candidates.append(dict(c))
+
         self._load()
 
         if self._backend != "cross-encoder":
-            # Fallback: candidates already ranked by hybrid_search's final_score.
-            ranked = sorted(candidates, key=lambda c: c.get("final_score", c.get("score", 0)), reverse=True)
+            ranked = sorted(unique_candidates, key=lambda c: c.get("final_score", c.get("score", 0)), reverse=True)
             for c in ranked:
                 c["rerank_score"] = c.get("final_score", c.get("score", 0))
             return ranked[:top_n]
 
-        pairs = [(query, c["text"]) for c in candidates]
-        scores = self._model.predict(pairs)
-        for c, s in zip(candidates, scores):
-            c["rerank_score"] = float(s)
-        ranked = sorted(candidates, key=lambda c: c["rerank_score"], reverse=True)
-        return ranked[:top_n]
+        try:
+            pairs = [(query, c["text"]) for c in unique_candidates]
+            scores = self._model.predict(pairs)
+            for c, s in zip(unique_candidates, scores):
+                c["rerank_score"] = float(s)
+            ranked = sorted(unique_candidates, key=lambda c: c["rerank_score"], reverse=True)
+            return ranked[:top_n]
+        except Exception as e:
+            logger.error("Reranker prediction failed (%s); falling back to hybrid scores.", e)
+            ranked = sorted(unique_candidates, key=lambda c: c.get("final_score", c.get("score", 0)), reverse=True)
+            for c in ranked:
+                c["rerank_score"] = c.get("final_score", c.get("score", 0))
+            return ranked[:top_n]
 
     @property
     def backend(self) -> str:
@@ -73,7 +90,6 @@ reranker = Reranker()
 # =====================================================
 # TEST
 # =====================================================
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     fake_candidates = [

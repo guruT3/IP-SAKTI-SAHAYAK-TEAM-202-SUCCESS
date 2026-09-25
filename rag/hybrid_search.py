@@ -6,6 +6,9 @@ Combines semantic (FAISS/BGE-M3) and keyword (BM25) retrieval with a
 configurable weighted score.
 Includes a built-in pure-Python BM25Okapi implementation so that hybrid
 search never fails even if rank-bm25 is not externally installed.
+
+Upgraded to support consistent domain & jurisdiction filtering across both
+BM25 and Vector search, query expansion search loops, and degraded fallback safety.
 """
 
 import math
@@ -58,7 +61,6 @@ class PurePythonBM25Okapi:
         return scores
 
 
-# Try importing external rank_bm25, fall back to pure-Python implementation
 try:
     from rank_bm25 import BM25Okapi
 except ImportError:
@@ -74,7 +76,6 @@ class BM25Index:
         self._corpus_meta: List[Dict[str, Any]] = []
 
     def build(self, chunks: List[Dict[str, Any]]) -> None:
-        """chunks: list of dicts each containing at least 'text' plus metadata."""
         tokenized = [_tokenize(c["text"]) for c in chunks]
         if tokenized:
             self._bm25 = BM25Okapi(tokenized)
@@ -82,19 +83,46 @@ class BM25Index:
             self._bm25 = None
         self._corpus_meta = chunks
 
-    def search(self, query: str, top_k: int) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        top_k: int,
+        jurisdiction: Optional[str] = None,
+        allowed_domains: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
         if self._bm25 is None or not self._corpus_meta:
             return []
         tokenized_query = _tokenize(query)
         if not tokenized_query:
             return []
         scores = self._bm25.get_scores(tokenized_query)
-        ranked = sorted(zip(self._corpus_meta, scores), key=lambda x: x[1], reverse=True)[:top_k]
+        ranked = sorted(zip(self._corpus_meta, scores), key=lambda x: x[1], reverse=True)
         max_score = max((s for _, s in ranked), default=1.0) or 1.0
-        return [
-            {**meta, "score": float(score) / max_score, "retrieval_method": "keyword"}
-            for meta, score in ranked if score > 0
-        ]
+
+        results = []
+        for meta, score in ranked:
+            if score <= 0:
+                continue
+
+            # Flexible Jurisdiction Check
+            chunk_jur = meta.get("jurisdiction")
+            if jurisdiction and chunk_jur and jurisdiction not in (None, "Unspecified", "Auto Detect"):
+                if jurisdiction == "India" and chunk_jur not in ("India", "India & International", "Unspecified", None):
+                    continue
+                elif jurisdiction == "International" and chunk_jur not in ("International", "India & International", "Unspecified", None):
+                    continue
+
+            # Flexible Domain Check
+            chunk_dom = meta.get("domain")
+            if allowed_domains and chunk_dom:
+                if chunk_dom not in allowed_domains and chunk_dom != "General IP":
+                    continue
+
+            results.append({**meta, "score": float(score) / max_score, "retrieval_method": "keyword"})
+            if len(results) >= top_k:
+                break
+
+        return results
 
     @property
     def size(self) -> int:
@@ -141,6 +169,8 @@ def hybrid_search(
     top_k: int = None,
     jurisdiction: Optional[str] = None,
     domain: Optional[str] = None,
+    allowed_domains: Optional[List[str]] = None,
+    query_expansions: Optional[List[str]] = None,
     semantic_weight: Optional[float] = None,
     keyword_weight: Optional[float] = None,
 ) -> List[Dict[str, Any]]:
@@ -148,20 +178,50 @@ def hybrid_search(
     semantic_weight = semantic_weight if semantic_weight is not None else settings.HYBRID_SEMANTIC_WEIGHT
     keyword_weight = keyword_weight if keyword_weight is not None else settings.HYBRID_KEYWORD_WEIGHT
 
-    semantic_results = semantic_search(query, top_k=top_k, jurisdiction=jurisdiction, domain=domain)
-
-    # Boost keyword search weight for statutory citations (e.g., Section 3(d), Rule 158B)
+    # Boost keyword search weight for statutory citations (e.g. Section 3(d), Rule 158B)
     if re.search(r"(section|article|rule|clause|act)\s+[\dIVXLC]+", query, re.IGNORECASE):
         keyword_weight = min(1.0, keyword_weight + 0.3)
         semantic_weight = max(0.0, 1.0 - keyword_weight)
 
-    keyword_results = bm25_index.search(query, top_k=top_k) if bm25_index.size else []
+    queries_to_search = query_expansions or [query]
+    all_semantic_results = []
+    all_keyword_results = []
 
-    if not semantic_results and not keyword_results:
-        logger.info("hybrid_search: no results for query=%r", query)
+    for q in queries_to_search:
+        try:
+            sem_res = semantic_search(
+                q, top_k=top_k, jurisdiction=jurisdiction, domain=domain, allowed_domains=allowed_domains
+            )
+            all_semantic_results.extend(sem_res)
+        except Exception as e:
+            logger.error("Semantic search failed for query %r: %s", q, e)
+
+        if bm25_index.size:
+            try:
+                kw_res = bm25_index.search(
+                    q, top_k=top_k, jurisdiction=jurisdiction, allowed_domains=allowed_domains
+                )
+                all_keyword_results.extend(kw_res)
+            except Exception as e:
+                logger.error("BM25 search failed for query %r: %s", q, e)
+
+    # Deduplicate semantic and keyword results keeping highest score per chunk
+    def _dedup_list(lst: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        best = {}
+        for item in lst:
+            cid = str(item.get("chunk_id") or item.get("text", "")[:80])
+            if cid not in best or item.get("score", 0) > best[cid].get("score", 0):
+                best[cid] = item
+        return list(best.values())
+
+    unique_semantic = _dedup_list(all_semantic_results)
+    unique_keyword = _dedup_list(all_keyword_results)
+
+    if not unique_semantic and not unique_keyword:
+        logger.info("hybrid_search: 0 results for query=%r", query)
         return []
 
-    return _merge(semantic_results, keyword_results, semantic_weight, keyword_weight)[:top_k]
+    return _merge(unique_semantic, unique_keyword, semantic_weight, keyword_weight)[:top_k]
 
 
 # =====================================================
@@ -170,8 +230,8 @@ def hybrid_search(
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     bm25_index.build([
-        {"chunk_id": "c1", "text": "Section 3(d) excludes mere discovery of a new form of a known substance."},
-        {"chunk_id": "c2", "text": "Geographical Indications protect products originating from a specific region."},
+        {"chunk_id": "c1", "text": "Section 3(d) excludes mere discovery of a new form of a known substance.", "jurisdiction": "India", "domain": "Patent"},
+        {"chunk_id": "c2", "text": "Geographical Indications protect products originating from a specific region.", "jurisdiction": "India", "domain": "GI"},
     ])
     results = hybrid_search("What does Section 3(d) say?", top_k=5)
     assert results and results[0]["chunk_id"] == "c1"

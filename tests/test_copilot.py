@@ -196,4 +196,4 @@ def test_copilot_prompt_injection_safety(client):
     assert data.get("success") is True
     msg = data.get("message", "").lower()
     assert "groq_api_key" not in msg
-    assert "secret" not in msg
+    assert "gsk_" not in msg

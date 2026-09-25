@@ -2,11 +2,9 @@
 IP-SAKTI SAHAYAK
 Domain Classifier
 ==================
-Classifies an incoming query into one of the supported IP domains
-(spec Section 19). Uses a fast, transparent keyword/rule-based
-classifier rather than an opaque model call — classification decisions
-should be explainable, and this also means the classifier still works
-even if the LLM backend is down.
+Classifies an incoming query into one of the supported IP & source domains
+(spec Section 15, 16 & 19). Uses a fast, transparent keyword/rule-based
+classifier so classification decisions are explainable and work offline.
 """
 
 import re
@@ -25,6 +23,7 @@ DOMAINS: Dict[str, List[str]] = {
     "Plant Variety": ["plant variety", "ppv&fr", "farmers rights", "plant breeders rights"],
     "Traditional Knowledge": ["traditional knowledge", "tkdl", "indigenous knowledge", "folklore"],
     "Ayurveda": ["ayurveda", "ayurvedic", "ayush", "herbal formulation", "siddha", "unani"],
+    "Medical": ["medical", "pubmed", "clinical trial", "pharmacology", "icmr", "biomedical", "bio-enhancement", "bioavailability"],
     "Biodiversity": ["biodiversity", "biological resource", "biopiracy", "genetic resource"],
     "ABS": ["access and benefit sharing", "abs agreement", "nagoya protocol", "benefit sharing"],
     "International IP": ["wipo", "trips", "pct", "madrid system", "international treaty",
@@ -54,10 +53,8 @@ def classify_domain(query: str) -> Dict[str, object]:
         return {"domain": "General IP", "confidence": 0.3, "matches": []}
 
     best_domain = max(scores, key=scores.get)
-    total_hits = sum(scores.values())
     confidence = min(1.0, 0.5 + 0.15 * scores[best_domain])
 
-    # Combined-domain hint (e.g. Ayurveda + Traditional Knowledge together)
     secondary = [d for d in scores if d != best_domain]
 
     return {

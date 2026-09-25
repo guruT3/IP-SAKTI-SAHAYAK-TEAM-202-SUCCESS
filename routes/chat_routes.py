@@ -4,6 +4,7 @@ Chat Routes
 ===========
 POST /api/chat — main RAG query endpoint (supports 'quick' and 'deep' modes).
 GET /api/chat/history/<conversation_id> — retrieve conversation history.
+POST /api/chat/diagnose — internal developer diagnostic endpoint (spec Section 63).
 """
 
 import logging
@@ -99,3 +100,41 @@ def chat_history(conversation_id):
             for m in convo.messages
         ]
     return jsonify({"success": True, "conversation_id": conversation_id, "messages": messages})
+
+
+@chat_bp.route("/api/chat/diagnose", methods=["POST"])
+def chat_diagnose():
+    """
+    Internal diagnostic endpoint for developers/admins to inspect full RAG pipeline execution.
+    (Spec Section 63)
+    """
+    data = request.get_json(silent=True) or {}
+    query = (data.get("query") or "").strip()
+    jurisdiction = data.get("jurisdiction") or None
+    language = normalize_language_code(data.get("language"))
+    mode = (data.get("mode") or "quick").lower()
+
+    if not query:
+        return jsonify({"success": False, "error": "Query text is required."}), 400
+
+    try:
+        result = answer_query(query, requested_jurisdiction=jurisdiction, requested_language=language, mode=mode, debug=True)
+        return jsonify({
+            "success": result.success,
+            "answer": result.answer,
+            "confidence": result.confidence,
+            "confidence_level": result.confidence_level,
+            "domain": result.domain,
+            "jurisdiction": result.jurisdiction,
+            "language": result.language,
+            "sources": result.sources,
+            "citations": result.citations,
+            "claim_trace_map": result.claim_trace_map,
+            "abstained": result.abstained,
+            "abstain_reason": result.abstain_reason,
+            "latency_ms": result.latency_ms,
+            "diagnostic_trace": result.diagnostic_trace,
+        })
+    except Exception as e:
+        logger.exception("Error in chat_diagnose")
+        return jsonify({"success": False, "error": str(e)}), 500

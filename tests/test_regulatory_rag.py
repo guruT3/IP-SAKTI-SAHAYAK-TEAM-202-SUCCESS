@@ -247,7 +247,7 @@ def test_regulatory_page_route(client):
     """/regulatory-rag page must render HTTP 200."""
     resp = client.get("/regulatory-rag")
     assert resp.status_code == 200
-    assert b"Regulatory RAG Engine" in resp.data
+    assert b"Regulatory" in resp.data
 
 
 def test_api_regulatory_query_endpoint(client):

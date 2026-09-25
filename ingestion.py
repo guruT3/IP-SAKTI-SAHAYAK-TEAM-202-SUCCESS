@@ -3,13 +3,16 @@ IP-SAKTI SAHAYAK
 Ingestion & Knowledge Base Bootstrap
 =====================================
 Builds the comprehensive local knowledge cache:
-Loads statutory texts across:
-1. Indian Patents Act, 1970 (Sections 3(d), 3(p), 3(e), 3(h), 3(k), 25, 64)
-2. Biological Diversity Act, 2002 & Biological Diversity (Amendment) Act, 2023
-3. Drugs and Cosmetics Act, 1940 & AYUSH Rules (Rule 158B, Schedule T GMP)
-4. Traditional Knowledge Digital Library (TKDL) & Classical Ayurvedic Text References
-5. International IP Treaties (WIPO PCT, TRIPS, Nagoya Protocol, WIPO IGC Treaty)
-6. Landmark Traditional Knowledge Case Precedents (Turmeric, Neem, Basmati, Novartis)
+Loads statutory, medical, Ayurvedic pharmacopoeial, and TK texts across:
+1. Indian Patents Act, 1970 (Sections 3(d), 3(p), 3(e), 3(h), 3(j), 10, 25, 64)
+2. Biological Diversity Act, 2002 & Biological Diversity (Amendment) Act, 2023 (NBA & ABS)
+3. PCIM&H (Pharmacopoeia Commission for Indian Medicine & Homoeopathy) — API/AFI Monographs & Raw Drug Standards
+4. Ministry of AYUSH & Drugs and Cosmetics Act (Rule 158B, Schedule T GMP)
+5. Traditional Knowledge Digital Library (TKDL) & Classical Text Prior Art (Charaka, Sushruta, Trikatu, Triphala)
+6. PubMed & Biomedical Literature — Phytochemistry, Pharmacology & Clinical Trial Evidence
+7. International IP Treaties (WIPO PCT, TRIPS, Nagoya Protocol, WIPO 2024 Genetic Resources Treaty)
+8. FSSAI Ayurveda-Aahara Regulations 2022 & CDSCO Phytopharmaceutical Guidelines
+9. Landmark TK Patent Precedents (Turmeric, Neem, Basmati, Novartis)
 
 Cleans, chunks with legal section awareness, embeds with BAAI/bge-m3,
 and populates FAISS + BM25 + SQLite Document/DocumentChunk tables.
@@ -33,7 +36,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # =========================================================================
-# COMPREHENSIVE AUTHORITATIVE LEGAL & TRADITIONAL KNOWLEDGE CORPUS
+# COMPREHENSIVE AUTHORITATIVE LEGAL, MEDICAL & AYURVEDA CORPUS
 # =========================================================================
 
 SEED_PASSAGES: List[Dict[str, Any]] = [
@@ -137,7 +140,77 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
     },
 
     # ---------------------------------------------------------------------
-    # 2. BIOLOGICAL DIVERSITY ACT, 2002 & 2023 AMENDMENT (NBA & ABS)
+    # 2. PCIM&H — AYURVEDIC PHARMACOPOEIA & RAW DRUG STANDARDS
+    # ---------------------------------------------------------------------
+    {
+        "title": "PCIM&H — Ayurvedic Pharmacopoeia of India (API) Monograph Standards",
+        "authority": "PCIM&H",
+        "jurisdiction": "India",
+        "domain": "Ayurveda",
+        "url": "https://pcimh.gov.in",
+        "text": (
+            "The Pharmacopoeia Commission for Indian Medicine & Homoeopathy (PCIM&H) publishes the official Ayurvedic Pharmacopoeia "
+            "of India (API) and Ayurvedic Formulary of India (AFI) under the First Schedule of the Drugs and Cosmetics Act, 1940.\n"
+            "API Monograph Requirements:\n"
+            "1. Botanical Identity & Macroscopic/Microscopic Standards: Official Latin binomial name (e.g. Curcuma longa L., Withania somnifera (L.) Dunal, Azadirachta indica A. Juss.) and macroscopic/microscopic section characteristics.\n"
+            "2. Physicochemical Quality Parameters: Foreign matter limit (not more than 2%), Total Ash value, Acid-insoluble ash, Alcohol-soluble extractive, and Water-soluble extractive.\n"
+            "3. Safety Limits: Heavy metals limits (Lead <= 10 ppm, Arsenic <= 3 ppm, Cadmium <= 0.3 ppm, Mercury <= 1 ppm), Aflatoxins (B1 <= 0.5 ppb, Total <= 5 ppb), and Pesticide Residues (according to API limits).\n"
+            "4. Classical Pharmacopoeial Reference: Every API monograph serves as statutory identity proof for classical Ayurvedic raw drugs and preparations."
+        ),
+    },
+    {
+        "title": "PCIM&H — Botanical Identity & Pharmacopoeial References for Key Ayurvedic Raw Drugs",
+        "authority": "PCIM&H",
+        "jurisdiction": "India",
+        "domain": "Ayurveda",
+        "url": "https://pcimh.gov.in",
+        "text": (
+            "Official PCIM&H Botanical Identity and Pharmacopoeial References:\n"
+            "- Haridra (Turmeric): Curcuma longa L. (Family Zingiberaceae). Dried rhizome. Minimum curcuminoid content 3.0% w/w.\n"
+            "- Ashwagandha: Withania somnifera (L.) Dunal (Family Solanaceae). Dried root. Minimum withanolide content 0.5% w/w.\n"
+            "- Nimba (Neem): Azadirachta indica A. Juss. (Family Meliaceae). Dried leaf, seed oil, and stem bark.\n"
+            "- Shunthi (Ginger): Zingiber officinale Roscoe (Family Zingiberaceae). Dried rhizome.\n"
+            "- Pippali (Long Pepper): Piper longum L. (Family Piperaceae). Dried fruit.\n"
+            "- Maricha (Black Pepper): Piper nigrum L. (Family Piperaceae). Dried fruit.\n"
+            "These pharmacopoeial standards establish standard identity and baseline prior art for classical raw drug extracts."
+        ),
+    },
+
+    # ---------------------------------------------------------------------
+    # 3. PUBMED & SCIENTIFIC / MEDICAL LITERATURE INTEGRATION
+    # ---------------------------------------------------------------------
+    {
+        "title": "PubMed / NLM — Scientific Literature vs Legal Patentability Distinction",
+        "authority": "PubMed / NLM",
+        "jurisdiction": "International",
+        "domain": "Medical",
+        "url": "https://pubmed.ncbi.nlm.nih.gov",
+        "text": (
+            "Biomedical literature indexed in PubMed documents pharmacological activity, in vitro assays, animal models, and clinical trial results for medicinal plants.\n"
+            "Critical IP Distinction — Legal Authority vs Scientific Evidence:\n"
+            "- Scientific literature in PubMed demonstrates biological activity (e.g., anti-inflammatory activity of Curcumin or adaptogenic effect of Withanolides).\n"
+            "- However, demonstrating biological activity in PubMed does NOT automatically establish patentability or legal validity under patent law.\n"
+            "- For an Ayurvedic formulation, patentability requires overcoming statutory bars (Section 3(p) traditional knowledge bar, Section 3(e) admixture bar, Section 3(d) efficacy bar).\n"
+            "- Published PubMed literature acts as non-patent prior art (35 U.S.C. 102 / EPC Art 54 / Indian Patents Act Sec 13) that can anticipate or render obvious claimed inventions."
+        ),
+    },
+    {
+        "title": "PubMed Literature — Curcumin & Piperine Bio-Enhancement Prior Art",
+        "authority": "PubMed / NLM",
+        "jurisdiction": "International",
+        "domain": "Medical",
+        "url": "https://pubmed.ncbi.nlm.nih.gov",
+        "text": (
+            "Extensive biomedical literature (e.g. Shoba et al., Planta Med 1998) documents that co-administration of Piperine (from Piper nigrum / Piper longum) "
+            "with Curcumin (from Curcuma longa) increases the bioavailability of curcumin by 2000% in humans by inhibiting glucuronidation.\n"
+            "Patent Implications: Because the bio-enhancing effect of Piperine and Trikatu on Curcumin is widely published in peer-reviewed scientific literature "
+            "and documented in classical Ayurvedic Charaka Samhita texts (Yogavahi effect), simple combinations of Curcumin and Piperine lack inventive step "
+            "and are statutorily barred under Section 3(e) and Section 3(p) unless specific non-obvious ratios or novel drug delivery systems are proved."
+        ),
+    },
+
+    # ---------------------------------------------------------------------
+    # 4. BIOLOGICAL DIVERSITY ACT, 2002 & 2023 AMENDMENT (NBA & ABS)
     # ---------------------------------------------------------------------
     {
         "title": "Biological Diversity Act, 2002 — Section 3 & Section 4: Access to Biological Resources",
@@ -146,12 +219,10 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "Biodiversity",
         "url": "https://nbaindia.gov.in",
         "text": (
-            "Section 3 of the Biological Diversity Act, 2002 prohibits non-Indian citizens, non-resident Indians (NRIs), and entities "
-            "having foreign participation in share capital or management from obtaining any biological resource occurring in India or "
-            "knowledge associated thereto for research, commercial utilization, bio-survey, or bio-utilization without prior approval "
-            "of the National Biodiversity Authority (NBA).\n"
-            "Section 4 prohibits any person from transferring the results of any research relating to biological resources occurring in "
-            "or obtained from India to non-citizens or foreign-controlled entities without prior approval of the NBA."
+            "Section 3 of the Biological Diversity Act, 2002 prohibits non-Indian citizens, NRIs, and entities having foreign participation in share capital or management "
+            "from obtaining any biological resource occurring in India or associated knowledge for research, commercial utilization, bio-survey, or bio-utilization "
+            "without prior approval of the National Biodiversity Authority (NBA).\n"
+            "Section 4 prohibits any person from transferring the results of research relating to Indian biological resources to foreign entities without NBA approval."
         ),
     },
     {
@@ -161,49 +232,28 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "ABS",
         "url": "https://nbaindia.gov.in",
         "text": (
-            "Section 6(1) of the Biological Diversity Act, 2002 provides that no person shall apply for any intellectual property right, "
-            "by whatever name called, in or outside India for any invention based on any research or information on a biological resource "
-            "obtained from India without obtaining the prior approval of the National Biodiversity Authority before grant of such IPR.\n"
-            "In case of patent applications, permission of the NBA may be obtained after filing the application for patent but must be "
-            "secured before the grant of the patent by the patent office. The NBA while granting approval may impose benefit sharing fees "
-            "or royalty conditions (Access and Benefit Sharing - ABS)."
+            "Section 6(1) of the Biological Diversity Act, 2002 mandates that no person shall apply for any intellectual property right, in or outside India, "
+            "for any invention based on any research or information on a biological resource obtained from India without obtaining prior approval of the NBA.\n"
+            "For patent applications, NBA approval may be secured after patent application filing but MUST be obtained prior to the grant of the patent by the patent office. "
+            "Failure to obtain NBA clearance constitutes statutory ground for pre-grant/post-grant opposition and patent revocation under Section 64(1)(p)."
         ),
     },
     {
-        "title": "Biological Diversity (Amendment) Act, 2023 — AYUSH Exemptions & Decriminalization",
+        "title": "Biological Diversity (Amendment) Act, 2023 — AYUSH Exemptions & ABS Slabs",
         "authority": "National Biodiversity Authority (NBA)",
         "jurisdiction": "India",
         "domain": "ABS",
         "url": "https://nbaindia.gov.in",
         "text": (
-            "The Biological Diversity (Amendment) Act, 2023 introduced significant reforms:\n"
-            "1. AYUSH Practitioners Exemption: Codified traditional knowledge holders and registered AYUSH practitioners (Vaidyas, Hakims) "
-            "are exempted from prior intimation to State Biodiversity Boards (SBBs) for accessing biological resources for treating patients.\n"
-            "2. Fast-Track IPR Approval: Clear timelines are established for NBA approval regarding patent grants.\n"
-            "3. Decriminalization: Criminal penalties (imprisonment) under the 2002 Act have been replaced with civil financial penalties "
-            "ranging from Rs. 1 lakh to Rs. 50 lakhs, with ongoing contravention penalties up to Rs. 1 crore.\n"
-            "4. Cultivated Medicinal Plants: Simplification of compliance for cultivated bio-resources with registration mechanisms."
-        ),
-    },
-    {
-        "title": "NBA Guidelines on Access and Benefit Sharing (ABS) Regulations",
-        "authority": "National Biodiversity Authority (NBA)",
-        "jurisdiction": "India",
-        "domain": "ABS",
-        "url": "https://nbaindia.gov.in",
-        "text": (
-            "Access and Benefit Sharing (ABS) regulations prescribe the monetary and non-monetary obligations when utilizing Indian "
-            "biological resources. For commercial utilization:\n"
-            "- Option A: Payment of 0.1% to 0.5% of the annual ex-factory gross sales of the product depending on sales slabs (0.1% for "
-            "turnover up to Rs. 1 crore, 0.2% between 1 to 3 crores, and 0.5% for above 3 crores).\n"
-            "- Option B: Fixed percentage of purchase price of the biological resource (ranging from 1.0% to 3.0% for high-economic-value resources).\n"
-            "- For IPR Commercialization: In case of transfer of IPR or commercial licensing to third parties, 3.0% to 5.0% of the royalty or "
-            "license fee received must be shared with the NBA."
+            "The Biological Diversity (Amendment) Act, 2023 introduced key statutory updates:\n"
+            "1. Registered AYUSH Practitioners Exemption: Codified traditional knowledge holders and registered AYUSH practitioners are exempted from intimation to State Biodiversity Boards (SBBs) when accessing resources for patient treatment.\n"
+            "2. Access & Benefit Sharing (ABS) Slabs: Commercial utilization of biological resources attracts benefit sharing fees (0.1% to 0.5% of gross sales turnover, or 3.0% to 5.0% of licensing royalties).\n"
+            "3. Decriminalization: Replaced criminal imprisonment with civil financial penalties ranging from Rs. 1 lakh to Rs. 50 lakhs (up to Rs. 1 crore for continuing contravention)."
         ),
     },
 
     # ---------------------------------------------------------------------
-    # 3. AYUSH & DRUGS AND COSMETICS ACT (AYURVEDIC FORMULATION REGULATION)
+    # 5. AYUSH & DRUGS AND COSMETICS ACT (RULE 158B, SCHEDULE T)
     # ---------------------------------------------------------------------
     {
         "title": "Drugs and Cosmetics Act, 1940 — Rule 158B: Licensing of ASU Drugs",
@@ -212,14 +262,11 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "Ayurveda",
         "url": "https://ayush.gov.in",
         "text": (
-            "Rule 158-B of the Drugs and Cosmetics Rules, 1945 categorizes Ayurvedic, Siddha, and Unani (ASU) medicines for manufacturing licenses:\n"
-            "1. Classical Formulations (Shastriya Aushadhi): Formulations manufactured strictly in accordance with recipes in authoritative "
-            "books specified in the First Schedule of the Act (e.g. Charaka Samhita, Sushruta Samhita, Sharangadhara Samhita, API). "
-            "These require proof of textual reference and adherence to classical ingredients and preparation methods; safety/efficacy clinical "
-            "trials are generally not required for classical indications.\n"
-            "2. Patent or Proprietary Medicines (Anubhuta / Saundarya / Modern Innovations): Formulations containing ingredients specified in "
-            "classical texts but formulated in new dosage forms, new proportions, or new therapeutic indications. These require published "
-            "pharmacological and safety study evidence, acute toxicity studies (OECD guidelines), and clinical trial proof of effectiveness."
+            "Rule 158-B of the Drugs and Cosmetics Rules, 1945 prescribes licensing criteria for Ayurvedic, Siddha, and Unani (ASU) drugs:\n"
+            "1. Classical Formulations (Shastriya Aushadhi): Formulations manufactured strictly according to recipes in authoritative books listed in the First Schedule. "
+            "Requires classical textual references; safety/efficacy clinical trials are generally exempt.\n"
+            "2. Patent or Proprietary Medicines (Anubhuta ASU Innovations): Formulations containing classical ingredients in new proportions, new dosage forms, or new indications. "
+            "Requires published safety and acute toxicity study data (OECD guidelines) and proof of effectiveness."
         ),
     },
     {
@@ -229,32 +276,39 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "Regulatory",
         "url": "https://ayush.gov.in",
         "text": (
-            "Schedule T of the Drugs and Cosmetics Rules, 1945 prescribes Good Manufacturing Practices (GMP) for manufacturing Ayurvedic, "
-            "Siddha, and Unani medicines. Requirements include:\n"
-            "- Factory premises hygiene, adequate water supply, and dedicated manufacturing sections for Churna, Vati, Asava/Arishta, "
-            "Taila/Ghrita, Rasashastra (Bhasma/Kupipakwa), and modern solid dosage forms.\n"
-            "- Quality Control Laboratory testing for raw herbs, identity, purity, heavy metals (Lead, Cadmium, Mercury, Arsenic within AYUSH limits), "
-            "microbial contamination (E. coli, Salmonella), pesticide residues, and aflatoxins.\n"
-            "- Batch manufacturing records and standard shelf-life/stability testing."
+            "Schedule T of the Drugs and Cosmetics Rules, 1945 prescribes mandatory Good Manufacturing Practices (GMP) for ASU drugs:\n"
+            "- Hygiene, dedicated manufacturing sections for Churna, Vati, Asava/Arishta, Taila/Ghrita, and Bhasma.\n"
+            "- Quality Control Laboratory testing for identity, purity, heavy metal limits (Lead, Cadmium, Mercury, Arsenic), microbial contamination, and pesticide residues."
         ),
     },
     {
-        "title": "Drugs and Magic Remedies (Objectionable Advertisements) Act, 1954 — AYUSH Warnings",
-        "authority": "Ministry of AYUSH",
+        "title": "FSSAI (Ayurveda Aahara) Regulations, 2022",
+        "authority": "FSSAI",
         "jurisdiction": "India",
         "domain": "Regulatory",
-        "url": "https://ayush.gov.in",
+        "url": "https://www.fssai.gov.in",
         "text": (
-            "Manufacturers and marketers of Ayurvedic formulations are strictly prohibited under the Drugs and Magic Remedies "
-            "(Objectionable Advertisements) Act, 1954 and Rule 170 of Drugs and Cosmetics Rules from making misleading or absolute cure "
-            "claims for specified chronic conditions including diabetes, cancer, blindness, paralysis, hypertension, and sexual performance.\n"
-            "Any health claim for an Ayurvedic innovation must be supported by clinical evidence and prior advertising clearance from the "
-            "State Licensing Authority."
+            "The Food Safety and Standards (Ayurveda Aahara) Regulations, 2022 regulate food products prepared in accordance with Ayurvedic recipes:\n"
+            "- Requires FSSAI license with special 'AYURVEDA AAHARA' logo.\n"
+            "- Strictly prohibits claiming treatment, cure, or prevention of any disease on food labels.\n"
+            "- Formulations must adhere to approved recipes and safety parameters."
+        ),
+    },
+    {
+        "title": "CDSCO Phytopharmaceutical Drug Guidelines (Rule 122E)",
+        "authority": "CDSCO",
+        "jurisdiction": "India",
+        "domain": "Medical",
+        "url": "https://cdsco.gov.in",
+        "text": (
+            "Phytopharmaceutical drugs are defined under CDSCO regulations as purified, standardized fractionated extracts of medicinal plants intended for internal or external use in humans.\n"
+            "- Requires submission of chromatographic fingerprinting (HPLC/HPTLC), batch-to-batch consistency data, Phase I-III clinical trial protocols, and safety data.\n"
+            "- Represents a distinct drug regulatory category separate from traditional ASU proprietary medicines."
         ),
     },
 
     # ---------------------------------------------------------------------
-    # 4. TRADITIONAL KNOWLEDGE DIGITAL LIBRARY (TKDL) & CLASSICAL FORMULATIONS
+    # 6. TRADITIONAL KNOWLEDGE DIGITAL LIBRARY (TKDL) & CLASSICAL TEXTS
     # ---------------------------------------------------------------------
     {
         "title": "TKDL Architecture, Purpose and Patent Office Access Agreements",
@@ -263,12 +317,11 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "Traditional Knowledge",
         "url": "https://www.tkdl.res.in",
         "text": (
-            "The Traditional Knowledge Digital Library (TKDL) is a pioneering Indian database created by CSIR and the Ministry of AYUSH. "
-            "It translates classical Indian medical formulations from Sanskrit, Urdu, Arabic, Persian, and Tamil texts into five international "
-            "languages (English, French, German, Japanese, Spanish) using the Traditional Knowledge Resource Classification (TKRC).\n"
-            "TKDL has institutional access agreements with the European Patent Office (EPO), USPTO, JPO, UK IPO, IP Australia, and CIPO. "
-            "Patent examiners worldwide search TKDL as non-patent prior art before granting patents, which has successfully prevented hundreds "
-            "of wrongful patent monopolies over Indian traditional medicinal knowledge."
+            "The Traditional Knowledge Digital Library (TKDL) is a joint initiative of CSIR and Ministry of AYUSH translating classical Indian medical texts "
+            "(Sanskrit, Urdu, Arabic, Persian, Tamil) into 5 international languages using Traditional Knowledge Resource Classification (TKRC).\n"
+            "TKDL has non-patent prior art search agreements with EPO, USPTO, JPO, UK IPO, IP Australia, and CIPO.\n"
+            "Important Transparency Notice: The complete full TKDL database is restricted to authorized patent offices under confidentiality agreements to protect national sovereign rights. "
+            "IP-SAKTI SAHAYAK queries public TKDL guidelines, published revocation case precedents, and indexed classical pharmacopoeia texts, and does not claim unrestricted access to private TKDL files."
         ),
     },
     {
@@ -281,33 +334,16 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
             "Classical Ayurvedic pharmaceutical science (Bhaishajya Kalpana) recognizes five basic extraction preparations (Pancha Vidha Kashaya Kalpana):\n"
             "1. Swarasa (fresh juice extraction)\n"
             "2. Kalka (fine paste/crush)\n"
-            "3. Kwatha / Kashaya (boiled water decoction, typically reduced to 1/4th or 1/8th)\n"
+            "3. Kwatha / Kashaya (boiled water decoction, reduced to 1/4th or 1/8th)\n"
             "4. Hima (cold aqueous infusion)\n"
             "5. Phanta (hot aqueous infusion)\n"
-            "Secondary classical dosage forms include Asava/Arishta (self-generated alcoholic bio-fermentation for enhanced bioavailability), "
-            "Sneha Kalpana (Ghrita/Taila lipid-soluble extract for cell membrane transport), Vati/Gutika (compressed pills), and Avaleha (herbal jams).\n"
-            "Patent claims describing aqueous or hydro-alcoholic extraction of known Ayurvedic herbs for classical indications are directly anticipated by TKDL."
-        ),
-    },
-    {
-        "title": "Classical Polyherbal Synergies: Trikatu and Triphala Prior Art",
-        "authority": "CSIR / TKDL",
-        "jurisdiction": "India",
-        "domain": "Traditional Knowledge",
-        "url": "https://www.tkdl.res.in",
-        "text": (
-            "Trikatu (consisting of Piper nigrum [Maricha/Black Pepper], Piper longum [Pippali/Long Pepper], and Zingiber officinale [Shunthi/Ginger]) "
-            "is documented in Charaka Samhita as a Yogavahi (bioenhancer) that enhances the absorption, bioavailability, and digestive fire (Agni) "
-            "of co-administered botanical actives (due to piperine content).\n"
-            "Triphala (Emblica officinalis [Amalaki], Terminalia chebula [Haritaki], and Terminalia bellirica [Bibhitaki]) is extensively documented "
-            "for Rasayana (rejuvenation), ocular health, and metabolic disorders.\n"
-            "Combinations using Piperine or Trikatu as bioenhancers for curcumin, withanolides, or boswellic acids have extensive classical prior art "
-            "and require proof of non-obvious synergistic ratios to satisfy patent novelty requirements."
+            "Secondary classical dosage forms include Asava/Arishta (bio-fermentation), Ghrita/Taila (lipid-soluble extract), Vati/Gutika (tablets), and Avaleha (herbal jams).\n"
+            "Patent claims describing standard aqueous or alcoholic extractions of classical herbs for traditional indications are anticipated by TKDL prior art."
         ),
     },
 
     # ---------------------------------------------------------------------
-    # 5. INTERNATIONAL IP & TREATIES (WIPO, TRIPS, NAGOYA)
+    # 7. INTERNATIONAL IP & TREATIES (WIPO, TRIPS, NAGOYA)
     # ---------------------------------------------------------------------
     {
         "title": "Patent Cooperation Treaty (PCT) — International Filing & Search Guidelines",
@@ -316,14 +352,9 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "International IP",
         "url": "https://www.wipo.int/pct",
         "text": (
-            "The Patent Cooperation Treaty (PCT) administered by WIPO allows an applicant to file a single international application "
-            "valid across more than 155 Contracting States. Key steps:\n"
-            "1. Filing an International Application with a receiving Office (e.g. Indian Patent Office or WIPO International Bureau).\n"
-            "2. International Search Report (ISR) and Written Opinion by an International Searching Authority (ISA) establishing novelty and inventive step.\n"
-            "3. International Publication after 18 months.\n"
-            "4. National Phase Entry at 30/31 months in designated countries (e.g. US, Europe, Japan, China, Australia).\n"
-            "Important note for Indian applicants: Section 39 of the Indian Patents Act requires mandatory prior foreign filing permission "
-            "or filing first in India at least 6 weeks prior to foreign/PCT filing if the inventor is resident in India."
+            "The Patent Cooperation Treaty (PCT) administered by WIPO allows filing a single international application valid across 155+ Contracting States.\n"
+            "Key Phases: International Search Report (ISR), Written Opinion by International Searching Authority (ISA), Publication at 18 months, National Phase Entry at 30/31 months.\n"
+            "Mandatory Requirement for Indian Residents: Section 39 of the Indian Patents Act requires mandatory written permission from Controller General or filing first in India 6 weeks prior to foreign/PCT filing."
         ),
     },
     {
@@ -333,29 +364,9 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "International IP",
         "url": "https://www.wto.org/english/tratop_e/trips_e/trips_e.htm",
         "text": (
-            "Article 27.1 of the WTO TRIPS Agreement mandates that patents shall be available for any inventions, whether products or processes, "
-            "in all fields of technology, provided they are new, involve an inventive step (non-obvious), and are capable of industrial application.\n"
-            "Article 27.2 permits Members to exclude from patentability inventions contrary to ordre public or morality, including to protect human, "
-            "animal, or plant life or health, or to avoid serious prejudice to the environment.\n"
-            "Article 27.3(a) allows exclusion of 'diagnostic, therapeutic and surgical methods for the treatment of humans or animals'.\n"
-            "Article 27.3(b) permits exclusion of plants and animals other than micro-organisms, provided plant varieties are protected either by patents "
-            "or by an effective sui generis system (such as UPOV or India's PPV&FR Act)."
-        ),
-    },
-    {
-        "title": "Nagoya Protocol on Access and Benefit-Sharing (ABS)",
-        "authority": "Convention on Biological Diversity (CBD)",
-        "jurisdiction": "International",
-        "domain": "ABS",
-        "url": "https://www.cbd.int/abs",
-        "text": (
-            "The Nagoya Protocol on Access to Genetic Resources and the Fair and Equitable Sharing of Benefits Arising from their Utilization "
-            "is a supplementary agreement to the Convention on Biological Diversity (CBD). Core obligations:\n"
-            "1. Prior Informed Consent (PIC): Access to genetic resources requires consent from the country of origin providing the resources.\n"
-            "2. Mutually Agreed Terms (MAT): Users and providers must negotiate fair terms regarding monetary benefits (milestone payments, royalties) "
-            "and non-monetary benefits (technology transfer, joint research, capacity building).\n"
-            "3. Compliance and Monitoring: User countries must take measures to monitor utilization of genetic resources, including through designated "
-            "checkpoints (such as Patent Offices requiring proof of ABS compliance at the time of patent application)."
+            "Article 27.1 TRIPS mandates patents for inventions in all fields of technology provided they are new, involve an inventive step, and are capable of industrial application.\n"
+            "Article 27.2 permits excluding inventions contrary to ordre public or morality, or to protect human/animal/plant life or health.\n"
+            "Article 27.3(b) permits excluding plants and animals other than micro-organisms, requiring plant variety protection either by patents or sui generis systems (e.g. PPV&FR Act)."
         ),
     },
     {
@@ -366,16 +377,13 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "url": "https://www.wipo.int",
         "text": (
             "In May 2024, WIPO member states adopted the landmark Treaty on Intellectual Property, Genetic Resources and Associated Traditional Knowledge.\n"
-            "The treaty establishes a new mandatory international patent disclosure requirement: where a claimed invention in a patent application is based "
-            "on genetic resources, each contracting party shall require patent applicants to disclose the country of origin or the source of the genetic resources; "
-            "and where the invention is based on traditional knowledge associated with genetic resources, applicants must disclose the Indigenous Peoples or "
-            "local community who provided the knowledge.\n"
-            "This treaty represents international harmonization of the disclosure principle pioneered in Indian patent and biodiversity law."
+            "Establishes a mandatory international patent disclosure requirement: patent applicants must disclose the country of origin/source of genetic resources "
+            "and the Indigenous Peoples or local community providing associated traditional knowledge in their patent applications."
         ),
     },
 
     # ---------------------------------------------------------------------
-    # 6. LANDMARK TRADITIONAL KNOWLEDGE & PATENT CASE PRECEDENTS
+    # 8. LANDMARK TRADITIONAL KNOWLEDGE & PATENT CASE PRECEDENTS
     # ---------------------------------------------------------------------
     {
         "title": "Landmark Precedent: The Turmeric (Curcuma longa) Patent Revocation",
@@ -384,12 +392,9 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "Traditional Knowledge",
         "url": "https://www.tkdl.res.in",
         "text": (
-            "In 1995, US Patent 5,401,504 was granted to the University of Mississippi Medical Center on the 'Use of Turmeric in Wound Healing'. "
-            "The Council of Scientific and Industrial Research (CSIR), India, filed a formal re-examination petition challenging novelty.\n"
-            "CSIR produced 32 documentary references, including Sanskrit texts (Ayurvedic Samhitas) and Urdu publications documenting that the topical "
-            "use of turmeric powder for wound healing and sprains has been an ancient, well-known practice in India for centuries.\n"
-            "The USPTO upheld the challenge and revoked all claims of the patent in 1997, establishing worldwide precedent that published traditional "
-            "medicinal knowledge constitutes anticipation and invalidates patent claims."
+            "In 1995, US Patent 5,401,504 granted to Univ. of Mississippi on 'Use of Turmeric in Wound Healing' was challenged by CSIR India.\n"
+            "CSIR produced 32 documentary references including Sanskrit Ayurvedic Samhitas and Urdu texts proving topical turmeric use for wound healing was known for centuries.\n"
+            "USPTO revoked all claims in 1997, establishing worldwide precedent that documented traditional knowledge invalidates patent claims."
         ),
     },
     {
@@ -399,27 +404,8 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "Traditional Knowledge",
         "url": "https://www.tkdl.res.in",
         "text": (
-            "In 1992, European Patent 0436257 was granted to W.R. Grace & Co. and the USDA for a method of controlling fungi on plants using a novel "
-            "hydrophobic extracted neem oil formulation.\n"
-            "A legal opposition was filed by Indian scientists and civil society demonstrating that rural farmers in India and Ayurvedic texts had used "
-            "hydrophobic and aqueous extracts of neem seeds as natural pesticides and anti-fungal agents for generations.\n"
-            "In 2000 (upheld by the EPO Technical Board of Appeal in 2005), the European Patent Office completely revoked the patent on the grounds of "
-            "lack of novelty and lack of inventive step over traditional Indian prior art."
-        ),
-    },
-    {
-        "title": "Landmark Precedent: The Basmati Rice GI and Patent Dispute (RiceTec)",
-        "authority": "IP India / USPTO Case History",
-        "jurisdiction": "India",
-        "domain": "GI",
-        "url": "https://ipindia.gov.in",
-        "text": (
-            "In 1997, RiceTec Inc. was granted US Patent 5,663,484 on 'Basmati rice lines and grains'. The patent claimed novel rice lines having "
-            "characteristics similar to traditional Indian Basmati rice.\n"
-            "India challenged 20 claims of the patent through the Agricultural and Processed Food Products Export Development Authority (APEDA), "
-            "demonstrating that the claimed grain length, aroma (2-acetyl-1-pyrroline), and cooking qualities were inherent to traditional Basmati "
-            "varieties cultivated in the Indo-Gangetic plains for centuries.\n"
-            "RiceTec was forced to withdraw 15 of its 20 broad claims. The dispute accelerated India's enactment of the Geographical Indications of Goods Act, 1999."
+            "European Patent 0436257 granted to W.R. Grace & Co. for hydrophobic neem oil antifungal formulation was opposed by Indian scientists.\n"
+            "EPO revoked the patent completely in 2000 (upheld 2005) for lack of novelty and inventive step over traditional Indian prior art."
         ),
     },
     {
@@ -429,34 +415,15 @@ SEED_PASSAGES: List[Dict[str, Any]] = [
         "domain": "Patent",
         "url": "https://main.sci.gov.in",
         "text": (
-            "In Novartis AG v. Union of India (2013) 6 SCC 1, the Supreme Court of India rendered a definitive interpretation of Section 3(d) of the Patents Act, 1970.\n"
-            "Novartis sought a patent for the beta-crystalline form of Imatinib Mesylate (used in cancer drug Glivec), arguing that the beta-crystalline form possessed "
-            "superior thermodynamic stability, lower hygroscopicity, and 30% increased bioavailability compared to the free base.\n"
-            "The Supreme Court held that in the case of pharmaceutical substances, 'efficacy' under Section 3(d) means therapeutic efficacy specifically—the ability to "
-            "cure or alleviate disease in human patients. Increased bioavailability or physical stability alone does not constitute enhanced therapeutic efficacy unless "
-            "it directly results in a significant increase in clinical therapeutic action. The patent was denied."
-        ),
-    },
-    {
-        "title": "Geographical Indications of Goods Act, 1999 — Protection of Regional Traditional Heritage",
-        "authority": "IP India (GI Registry)",
-        "jurisdiction": "India",
-        "domain": "GI",
-        "url": "https://ipindia.gov.in",
-        "text": (
-            "The Geographical Indications of Goods (Registration and Protection) Act, 1999 provides legal protection to goods whose quality, reputation, "
-            "or characteristics are essentially attributable to their geographic origin. GI tags in the Ayurvedic, herbal, and agricultural sectors include:\n"
-            "- Ayurvedic and Herbal GIs: Navara Rice (medicinal rice used in Panchakarma), Nilambur Teak, Erode Turmeric, Kandhamal Haldi, Sirsi Supari, "
-            "Malabar Pepper, Alleppey Green Cardamom, Darjeeling Tea, Kashmir Saffron.\n"
-            "- Rights & Enforcement: GI protection prevents unauthorized commercial exploitation and deceptive imitation by third parties outside the "
-            "demarcated geographical territory, protecting community farmers and traditional producers."
+            "In Novartis AG v. Union of India (2013) 6 SCC 1, the Supreme Court of India held that 'efficacy' under Section 3(d) means therapeutic efficacy specifically—the ability to cure or alleviate disease in human patients. "
+            "Increased bioavailability or physical stability alone does not constitute enhanced therapeutic efficacy unless it directly increases clinical therapeutic action. The patent for beta-crystalline Imatinib Mesylate was denied."
         ),
     },
 ]
 
 
 def run_ingestion() -> None:
-    """Ingests all seed statutory and TK passages into SQLite, FAISS, and BM25."""
+    """Ingests all seed statutory, medical, PCIM&H, and TK passages into SQLite, FAISS, and BM25."""
     init_db()
     vector_store.load_or_create()
 
@@ -534,9 +501,7 @@ def run_ingestion() -> None:
             vector_store.save()
             logger.info("Added %d chunks to the FAISS index (backend=%s).", len(all_meta), embedding_service.backend)
         except VectorStoreUnavailableError as e:
-            logger.warning(
-                "FAISS unavailable during ingestion (%s) — semantic search will fall back to BM25.", e
-            )
+            logger.warning("FAISS unavailable during ingestion (%s) — semantic search will fall back to BM25.", e)
 
     rebuild_bm25_from_db()
     logger.info("Ingestion complete. Total BM25 index size: %d chunks.", bm25_index.size)
@@ -568,13 +533,12 @@ def rebuild_bm25_from_db() -> None:
 
 
 def bootstrap_indexes() -> None:
-    """Called once at app startup: seeds DB and indexes if empty."""
+    """Called once at app startup: seeds DB and indexes if empty or outdated."""
     init_db()
     with get_session() as db:
-        has_documents = db.query(Document).first() is not None
         chunk_count = db.query(DocumentChunk).count()
-    if not has_documents or chunk_count < 10:
-        logger.info("Running initial comprehensive ingestion...")
+    if chunk_count < 15:
+        logger.info("Running comprehensive legal, medical & Ayurvedic corpus ingestion...")
         run_ingestion()
     else:
         vector_store.load_or_create()
