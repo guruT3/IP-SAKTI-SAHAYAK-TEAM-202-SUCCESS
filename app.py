@@ -327,6 +327,10 @@ def create_app() -> Flask:
         logger.exception("Unhandled server error")
         return jsonify({"success": False, "error": "An internal error occurred. Please try again."}), 500
 
+    # ---- Register AI Copilot blueprint ----
+    from routes.copilot_routes import copilot_bp
+    app.register_blueprint(copilot_bp)
+
     return app
 
 
